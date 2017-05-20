@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
+    <PackageTargetFallback>win8;portable-net45+win8</PackageTargetFallback>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
