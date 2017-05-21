@@ -1,4 +1,5 @@
-﻿using BundtCommon;
+﻿using System.Threading.Tasks;
+using BundtCommon;
 using Microsoft.Extensions.Logging;
 
 namespace BundtCake
@@ -15,7 +16,17 @@ namespace BundtCake
 
             var window = new Window("help, im stuck in a title bar factory", 100, 100, 500, 500);
 
-            vulkan.Initialize(window);
+            var initVulkanTask = Task.Run(async() => {
+                await vulkan.InitializeAsync(window);
+            });
+
+            initVulkanTask.Wait();
+
+            if (initVulkanTask.Exception != null)
+            {
+                throw initVulkanTask.Exception;
+            }
+
 
 
 
@@ -30,6 +41,12 @@ namespace BundtCake
             //         break;
             //     }
             // }
+
+
+            vulkan.Dispose();
+
+
+            // glfwDestroyWindow(window);
 
             return 0;
         }

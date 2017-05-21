@@ -13,5 +13,6 @@
     <PackageReference Include="VulkanSharp" Version="0.1.8"/>
     <PackageReference Include="BundtCommon" Version="1.0.4"/>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2"/>
+    <PackageReference Include="GlmNet" Version="0.5.1"/>
   </ItemGroup>
 </Project>
