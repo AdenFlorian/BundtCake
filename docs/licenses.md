@@ -1,3 +1,5 @@
+SDL2.dll
+========
 
 Please distribute this file with the SDL runtime environment:
 

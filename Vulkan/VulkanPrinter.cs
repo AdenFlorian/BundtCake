@@ -11,10 +11,10 @@ namespace BundtCake
         {
             var availableLayers = Commands.EnumerateInstanceLayerProperties();
 
-            _logger.LogInfo("Available instance layers:");
+            _logger.LogDebug("Available instance layers:");
             foreach (var layer in availableLayers)
             {
-                _logger.LogInfo("\t" + layer.LayerName);
+                _logger.LogDebug("\t" + layer.LayerName);
             }
         }
 
@@ -22,10 +22,10 @@ namespace BundtCake
         {
             var availableExtensions = Commands.EnumerateInstanceExtensionProperties();
 
-            _logger.LogInfo("Available instance extensions:");
+            _logger.LogDebug("Available instance extensions:");
             foreach (var extension in availableExtensions)
             {
-                _logger.LogInfo("\t" + extension.ExtensionName);
+                _logger.LogDebug("\t" + extension.ExtensionName);
             }
         }
     }
