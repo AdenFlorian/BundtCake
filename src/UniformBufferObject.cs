@@ -60,5 +60,15 @@ namespace BundtCake
                 bytes.Add(item);
             }
         }
+
+        internal static int GetSizeInBytes()
+        {
+            var floatsInMat4 = 16;
+            var numOfMat4s = 3;
+            var totalFloats = floatsInMat4 * numOfMat4s;
+            var bitsPerFloat = 32;
+            var bitInAByte = 8;
+            return (totalFloats * bitsPerFloat) / bitInAByte;
+        }
     }
 }

@@ -1242,7 +1242,7 @@ namespace BundtCake
 
         void CreateUniformBuffer()
         {
-            var bufferSize = Marshal.SizeOf(typeof(UniformBufferObject));
+            var bufferSize = UniformBufferObject.GetSizeInBytes();
             CreateBuffer(bufferSize, BufferUsageFlags.UniformBuffer, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out _uniformBuffer, out _uniformBufferMemory);
         }
 
@@ -1296,7 +1296,7 @@ namespace BundtCake
             {
                 Buffer = _uniformBuffer,
                 Offset = 0,
-                Range = Marshal.SizeOf(typeof(UniformBufferObject))
+                Range = UniformBufferObject.GetSizeInBytes()
             };
 
             // var imageInfo = new DescriptorImageInfo
@@ -1413,23 +1413,13 @@ namespace BundtCake
             //ubo.Model = glm.translate(new mat4(1f), new vec3(-3.0f, -3.0f, -3.0f));
             //ubo.Model = glm.rotate(ubo.Model, glm.radians(90.0f), new vec3(1.0f, 0.0f, 0.0f));
 
-            // ubo.Model = new mat4(1f);
-            // ubo.View = new mat4(1f);
-            // ubo.Projection = new mat4(1f);
-
-
-            ubo.Model = glm.rotate(new mat4(1f), /*(float)elapsedTime.TotalSeconds **/ glm.radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
+            ubo.Model = glm.rotate(new mat4(1f), (float)elapsedTime.TotalSeconds * glm.radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
             ubo.View = glm.lookAt(new vec3(2.0f, 2.0f, 2.0f), new vec3(0.0f, 0.0f, 0.0f), new vec3(0.0f, 0.0f, 1.0f));
             ubo.Projection = glm.perspective(glm.radians(45.0f), _swapChainExtent.Width / (float)_swapChainExtent.Height, 0.1f, 10.0f);
 
-            //ubo.Projection = new mat4();
-
             ubo.Projection[1,1] *= -1;
 
-            //ubo.Projection[1][1] *= -1;
-
             CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemory, 0, ubo.GetBytes().ToArray().Length, 0);
-            //CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemory, 0, Marshal.SizeOf(ubo), 0);
         }
 
         public void DrawFrame()
