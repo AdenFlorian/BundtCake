@@ -39,10 +39,10 @@ namespace BundtCake
         Pipeline _graphicsPipeline;
         CommandPool _commandPool;
         CommandPool _tempCommandPool;
-        // Image _textureImage;
-        // DeviceMemory _textureImageMemory;
-        // ImageView _textureImageView;
-        // Sampler _textureSampler;
+        Image _textureImage;
+        DeviceMemory _textureImageMemory;
+        ImageView _textureImageView;
+        Sampler _textureSampler;
         ImageView _depthImageView;
         Image _depthImage;
         DeviceMemory _depthImageMemory;
@@ -145,9 +145,9 @@ namespace BundtCake
 
             CreateFramebuffers();
 
-            // CreateTextureImage();
-            // CreateTextureImageView();
-            // CreateTextureSampler();
+            CreateTextureImage();
+            CreateTextureImageView();
+            CreateTextureSampler();
             // // loadModel();
             CreateVertexBuffer();
             CreateIndexBuffer();
@@ -187,6 +187,10 @@ namespace BundtCake
             if (flags.HasFlag(DebugReportFlagsExt.Error))
             {
                 _logger.LogError("Validation layer " + flags + ": " + Marshal.PtrToStringUTF8(message));
+            }
+            else if (flags.HasFlag(DebugReportFlagsExt.PerformanceWarning))
+            {
+                _logger.LogWarning("Validation layer " + flags + ": " + Marshal.PtrToStringUTF8(message));
             }
             else
             {
@@ -369,7 +373,7 @@ namespace BundtCake
             CreateSwapChainImageViews(_swapChainImages);
             CreateRenderPass();
             CreateGraphicsPipeline();
-            //CreateDepthResources();
+            CreateDepthResources();
             CreateFramebuffers();
             CreateCommandBuffers();
         }
@@ -517,7 +521,6 @@ namespace BundtCake
                     new SubpassDescription
                     {
                         PipelineBindPoint = PipelineBindPoint.Graphics,
-                        //InputAttachmentCount = ,
                         //InputAttachments = ,
                         ColorAttachments = new AttachmentReference[]
                         {
@@ -596,13 +599,13 @@ namespace BundtCake
                         DescriptorCount = 1,
                         StageFlags = ShaderStageFlags.Vertex,
                     },
-                    // new DescriptorSetLayoutBinding
-                    // {
-                    //     Binding = 1,
-                    //     DescriptorType = DescriptorType.CombinedImageSampler,
-                    //     DescriptorCount = 1,
-                    //     StageFlags = ShaderStageFlags.Fragment,
-                    // }
+                    new DescriptorSetLayoutBinding
+                    {
+                        Binding = 1,
+                        DescriptorType = DescriptorType.CombinedImageSampler,
+                        DescriptorCount = 1,
+                        StageFlags = ShaderStageFlags.Fragment,
+                    }
                 }
             };
 
@@ -985,49 +988,49 @@ namespace BundtCake
             EndSingleTimeCommands(commandBuffer);
         }
 
-        // void CreateTextureImage()
-        // {
-        //     //var pixels = stbi_load(TEXTURE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        //     var imagedata = ImageSharp.Image.Load(TEXTURE_PATH);
-        //     DeviceSize imageSize = imagedata.Width * imagedata.Height * 4;
+        void CreateTextureImage()
+        {
+            //var pixels = stbi_load(TEXTURE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            var imagedata = ImageSharp.Image.Load(TEXTURE_PATH);
+            DeviceSize imageSize = imagedata.Width * imagedata.Height * 4;
 
-        //     _logger.LogInfo("loaded texWidth: " + imagedata.Width);
-        //     _logger.LogInfo("loaded texHeight: " + imagedata.Height);
-        //     //_logger.LogInfo("loaded texChannels: " + imagedata.);
-        //     _logger.LogInfo("loaded imagedata.Pixels.Length: " + imagedata.Pixels.Length);
+            _logger.LogInfo("loaded texWidth: " + imagedata.Width);
+            _logger.LogInfo("loaded texHeight: " + imagedata.Height);
+            //_logger.LogInfo("loaded texChannels: " + imagedata.);
+            _logger.LogInfo("loaded imagedata.Pixels.Length: " + imagedata.Pixels.Length);
 
-        //     if (imagedata == null)
-        //     {
-        //         throw new VulkanException("failed to load texture image!");
-        //     }
+            if (imagedata == null)
+            {
+                throw new VulkanException("failed to load texture image!");
+            }
 
-        //     VkBuffer stagingBuffer;
-        //     DeviceMemory stagingBufferMemory;
+            VkBuffer stagingBuffer;
+            DeviceMemory stagingBufferMemory;
 
-        //     CreateBuffer(imageSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
+            CreateBuffer(imageSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
 
-        //     var pixelsBytes = new List<byte>();
+            var pixelsBytes = new List<byte>();
 
-        //     foreach (var pixel in imagedata.Pixels)
-        //     {
-        //         pixelsBytes.Add(pixel.R);
-        //         pixelsBytes.Add(pixel.G);
-        //         pixelsBytes.Add(pixel.B);
-        //         pixelsBytes.Add(pixel.A);
-        //     }
+            foreach (var pixel in imagedata.Pixels)
+            {
+                pixelsBytes.Add(pixel.R);
+                pixelsBytes.Add(pixel.G);
+                pixelsBytes.Add(pixel.B);
+                pixelsBytes.Add(pixel.A);
+            }
 
-        //     CopyToBufferMemory(pixelsBytes.ToArray(), stagingBufferMemory, 0, imageSize, 0);
+            CopyToBufferMemory(pixelsBytes.ToArray(), stagingBufferMemory, 0, imageSize, 0);
 
-        //     CreateImage((uint)imagedata.Width, (uint)imagedata.Height, Format.R8G8B8A8Unorm, ImageTiling.Optimal, ImageUsageFlags.TransferDst | ImageUsageFlags.Sampled, MemoryPropertyFlags.DeviceLocal, out _textureImage, out _textureImageMemory);
+            CreateImage((uint)imagedata.Width, (uint)imagedata.Height, Format.R8G8B8A8Unorm, ImageTiling.Optimal, ImageUsageFlags.TransferDst | ImageUsageFlags.Sampled, MemoryPropertyFlags.DeviceLocal, out _textureImage, out _textureImageMemory);
 
-        //     TransitionImageLayout(_textureImage, Format.R8G8B8A8Unorm, ImageLayout.Preinitialized, ImageLayout.TransferDstOptimal);
-        //     CopyBufferToImage(stagingBuffer, _textureImage, (uint)imagedata.Width, (uint)imagedata.Height);
-        //     TransitionImageLayout(_textureImage, Format.R8G8B8A8Unorm, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
+            TransitionImageLayout(_textureImage, Format.R8G8B8A8Unorm, ImageLayout.Preinitialized, ImageLayout.TransferDstOptimal);
+            CopyBufferToImage(stagingBuffer, _textureImage, (uint)imagedata.Width, (uint)imagedata.Height);
+            TransitionImageLayout(_textureImage, Format.R8G8B8A8Unorm, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
 
-        //     imagedata.Dispose();
-        //     _device.DestroyBuffer(stagingBuffer);
-        //     _device.FreeMemory(stagingBufferMemory);
-        // }
+            imagedata.Dispose();
+            _device.DestroyBuffer(stagingBuffer);
+            _device.FreeMemory(stagingBufferMemory);
+        }
 
         void CopyToBufferMemory(byte[] source, DeviceMemory destinationBufferMemory, DeviceSize offset, DeviceSize size, uint mapFlags)
         {
@@ -1038,34 +1041,34 @@ namespace BundtCake
             _device.UnmapMemory(destinationBufferMemory);
         }
 
-        // void CreateTextureImageView()
-        // {
-        //     _textureImageView = createImageView(_textureImage, Format.R8G8B8A8Unorm, ImageAspectFlags.Color);
-        // }
+        void CreateTextureImageView()
+        {
+            _textureImageView = createImageView(_textureImage, Format.R8G8B8A8Unorm, ImageAspectFlags.Color);
+        }
 
-        // void CreateTextureSampler()
-        // {
-        //     var samplerCreateInfo = new SamplerCreateInfo
-        //     {
-        //         MipLodBias = 0.0f,
-        //         MaxLod = 0.0f,
-        //         MinLod = 0.0f,
-        //         CompareOp = CompareOp.Always,
-        //         CompareEnable = false,
-        //         MaxAnisotropy = 16,
-        //         AnisotropyEnable = true,
-        //         BorderColor = BorderColor.IntOpaqueBlack,
-        //         AddressModeU = SamplerAddressMode.Repeat,
-        //         AddressModeV = SamplerAddressMode.Repeat,
-        //         AddressModeW = SamplerAddressMode.Repeat,
-        //         MipmapMode = SamplerMipmapMode.Linear,
-        //         MinFilter = Filter.Linear,
-        //         MagFilter = Filter.Linear,
-        //         UnnormalizedCoordinates = false
-        //     };
+        void CreateTextureSampler()
+        {
+            var samplerCreateInfo = new SamplerCreateInfo
+            {
+                MipLodBias = 0.0f,
+                MaxLod = 0.0f,
+                MinLod = 0.0f,
+                CompareOp = CompareOp.Always,
+                CompareEnable = false,
+                MaxAnisotropy = 16,
+                AnisotropyEnable = true,
+                BorderColor = BorderColor.IntOpaqueBlack,
+                AddressModeU = SamplerAddressMode.Repeat,
+                AddressModeV = SamplerAddressMode.Repeat,
+                AddressModeW = SamplerAddressMode.Repeat,
+                MipmapMode = SamplerMipmapMode.Linear,
+                MinFilter = Filter.Linear,
+                MagFilter = Filter.Linear,
+                UnnormalizedCoordinates = false
+            };
 
-        //     _textureSampler = _device.CreateSampler(samplerCreateInfo);
-        // }
+            _textureSampler = _device.CreateSampler(samplerCreateInfo);
+        }
 
         CommandBuffer BeginSingleTimeCommands()
         {
@@ -1260,13 +1263,13 @@ namespace BundtCake
 
         void CreateDescriptorPool()
         {
-            var poolSizes = new DescriptorPoolSize[1];
+            var poolSizes = new DescriptorPoolSize[2];
 
             poolSizes[0].Type = DescriptorType.UniformBuffer;
             poolSizes[0].DescriptorCount = 1;
 
-            // poolSizes[1].Type = DescriptorType.CombinedImageSampler;
-            // poolSizes[1].DescriptorCount = 1;
+            poolSizes[1].Type = DescriptorType.CombinedImageSampler;
+            poolSizes[1].DescriptorCount = 1;
 
             var poolInfo = new DescriptorPoolCreateInfo
             {
@@ -1297,12 +1300,12 @@ namespace BundtCake
                 Range = UniformBufferObject.GetSizeInBytes()
             };
 
-            // var imageInfo = new DescriptorImageInfo
-            // {
-            //     Sampler = _textureSampler,
-            //     ImageView = _textureImageView,
-            //     ImageLayout = ImageLayout.ShaderReadOnlyOptimal
-            // };
+            var imageInfo = new DescriptorImageInfo
+            {
+                Sampler = _textureSampler,
+                ImageView = _textureImageView,
+                ImageLayout = ImageLayout.ShaderReadOnlyOptimal
+            };
 
             var descriptorWrites = new WriteDescriptorSet[]
             {
@@ -1315,15 +1318,15 @@ namespace BundtCake
                     DescriptorType = DescriptorType.UniformBuffer,
                     BufferInfo = new DescriptorBufferInfo[] {bufferInfo}
                 },
-                // new WriteDescriptorSet
-                // {
-                //     DstSet = _descriptorSet,
-                //     DstBinding = 1,
-                //     DstArrayElement = 0,
-                //     DescriptorCount = 1,
-                //     DescriptorType = DescriptorType.CombinedImageSampler,
-                //     ImageInfo = new DescriptorImageInfo[] {imageInfo}
-                // }
+                new WriteDescriptorSet
+                {
+                    DstSet = _descriptorSet,
+                    DstBinding = 1,
+                    DstArrayElement = 0,
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.CombinedImageSampler,
+                    ImageInfo = new DescriptorImageInfo[] {imageInfo}
+                }
             };
 
             _device.UpdateDescriptorSets(descriptorWrites, null);
@@ -1479,14 +1482,14 @@ namespace BundtCake
         public void Dispose()
         {
             _device.WaitIdle();
-            
+
             CleanupSwapchain();
 
-            // _device.DestroySampler(_textureSampler);
-            // _device.DestroyImageView(_textureImageView);
+            _device.DestroySampler(_textureSampler);
+            _device.DestroyImageView(_textureImageView);
 
-            // _device.DestroyImage(_textureImage);
-            // _device.FreeMemory(_textureImageMemory);
+            _device.DestroyImage(_textureImage);
+            _device.FreeMemory(_textureImageMemory);
 
             _device.DestroyDescriptorPool(_descriptorPool);
 
