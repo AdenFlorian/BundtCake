@@ -15,7 +15,7 @@ namespace BundtCake
 
             var vulkan = new Vulkan();
 
-            var window = new Window("help, im stuck in a title bar factory", 100, 100, 500, 500);
+            var window = new Window("help, im stuck in a title bar factory", 100, 100, 500, 500, SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 
             vulkan.Initialize(window);
 
@@ -28,6 +28,13 @@ namespace BundtCake
                 if (sdlEvent.type == SDL.SDL_EventType.SDL_QUIT)
                 {
                     break;
+                }
+                if (sdlEvent.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+                {
+                    if (sdlEvent.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                    {
+                        vulkan.OnWindowResized();
+                    }
                 }
 
                 vulkan.UpdateUniformBuffer();

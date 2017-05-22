@@ -19,9 +19,9 @@ namespace BundtCake
 
         IntPtr _sdlWindowPtr;
 
-        public Window(string title, int xPosition, int yPosition, int width, int height)
+        public Window(string title, int xPosition, int yPosition, int width, int height, SDL.SDL_WindowFlags flags = 0)
         {
-            _sdlWindowPtr = SDL.SDL_CreateWindow(title, xPosition, yPosition, width, height, 0);
+            _sdlWindowPtr = SDL.SDL_CreateWindow(title, xPosition, yPosition, width, height, flags);
         }
 
         public Rectangle GetSize()

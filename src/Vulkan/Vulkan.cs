@@ -127,12 +127,9 @@ namespace BundtCake
             _device = CreateLogicalDevice(requiredPhysicalDeviceFeatures);
 
             CreateSwapchain();
+            CreateSwapChainImageViews();
 
-            _swapChainImages = _device.GetSwapchainImagesKHR(_swapChain);
-
-            CreateSwapChainImageViews(_swapChainImages);
-
-            _renderPass = CreateRenderPass();
+            CreateRenderPass();
 
             CreateDescriptorSetLayout();
 
@@ -148,13 +145,18 @@ namespace BundtCake
             CreateTextureImage();
             CreateTextureImageView();
             CreateTextureSampler();
+
             // // loadModel();
+
             CreateVertexBuffer();
             CreateIndexBuffer();
             CreateUniformBuffer();
+
             CreateDescriptorPool();
             CreateDescriptorSet();
+
             CreateCommandBuffers();
+
             CreateSemaphores();
 
             _logger.LogInfo("Vulkan initialized");
@@ -361,6 +363,8 @@ namespace BundtCake
             }
 
             _swapChain = _device.CreateSwapchainKHR(swapchainCreateInfo);
+
+            _swapChainImages = _device.GetSwapchainImagesKHR(_swapChain);
         }
 
         void RecreateSwapchain()
@@ -370,7 +374,7 @@ namespace BundtCake
             CleanupSwapchain();
 
             CreateSwapchain();
-            CreateSwapChainImageViews(_swapChainImages);
+            CreateSwapChainImageViews();
             CreateRenderPass();
             CreateGraphicsPipeline();
             CreateDepthResources();
@@ -446,15 +450,15 @@ namespace BundtCake
             }
         }
 
-        void CreateSwapChainImageViews(Image[] swapChainImages)
+        void CreateSwapChainImageViews()
         {
             _logger.LogInfo("Creating swap chain image views...");
 
             _swapChainImageViews = new List<ImageView>();
 
-            for (var i = 0; i < swapChainImages.Count(); i++)
+            for (var i = 0; i < _swapChainImages.Count(); i++)
             {
-                _swapChainImageViews.Add(CreateImageView(swapChainImages[i], _swapChainImageFormat, ImageAspectFlags.Color));
+                _swapChainImageViews.Add(CreateImageView(_swapChainImages[i], _swapChainImageFormat, ImageAspectFlags.Color));
             }
         }
 
@@ -485,7 +489,7 @@ namespace BundtCake
             return _device.CreateImageView(viewInfo);
         }
 
-        RenderPass CreateRenderPass()
+        void CreateRenderPass()
         {
             _logger.LogInfo("Creating render pass...");
 
@@ -554,7 +558,7 @@ namespace BundtCake
                 }
             };
 
-            return _device.CreateRenderPass(renderPassInfo);
+            _renderPass = _device.CreateRenderPass(renderPassInfo);
         }
 
         Format FindDepthFormat()
@@ -1421,6 +1425,13 @@ namespace BundtCake
             ubo.Projection[1,1] *= -1;
 
             CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemory, 0, ubo.GetBytes().ToArray().Length, 0);
+        }
+
+        public void OnWindowResized()
+        {
+            if (_window.GetSize().Width == 0 || _window.GetSize().Height == 0) return;
+
+            RecreateSwapchain();
         }
 
         public void DrawFrame()
