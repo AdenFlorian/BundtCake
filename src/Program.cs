@@ -17,19 +17,7 @@ namespace BundtCake
 
             var window = new Window("help, im stuck in a title bar factory", 100, 100, 500, 500);
 
-            var initVulkanTask = Task.Run(async() => {
-                await vulkan.InitializeAsync(window);
-            });
-
-            initVulkanTask.Wait();
-
-            if (initVulkanTask.Exception != null)
-            {
-                throw initVulkanTask.Exception;
-            }
-
-
-
+            vulkan.Initialize(window);
 
             SDL.SDL_Event sdlEvent;
 
@@ -43,7 +31,7 @@ namespace BundtCake
                 }
 
                 vulkan.UpdateUniformBuffer();
-                vulkan.DrawFrameAsync().Wait();
+                vulkan.DrawFrame();
             }
 
 
