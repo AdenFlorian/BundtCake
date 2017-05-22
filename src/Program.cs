@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using BundtCommon;
 using Microsoft.Extensions.Logging;
+using SDL2;
 
 namespace BundtCake
 {
@@ -30,17 +31,20 @@ namespace BundtCake
 
 
 
-            // SDL.SDL_Event sdlEvent;
+            SDL.SDL_Event sdlEvent;
 
-            // while (true)
-            // {
-            //     SDL.SDL_PollEvent(out sdlEvent);
+            while (true)
+            {
+                SDL.SDL_PollEvent(out sdlEvent);
 
-            //     if (sdlEvent.type == SDL.SDL_EventType.SDL_QUIT)
-            //     {
-            //         break;
-            //     }
-            // }
+                if (sdlEvent.type == SDL.SDL_EventType.SDL_QUIT)
+                {
+                    break;
+                }
+
+                vulkan.UpdateUniformBuffer();
+                vulkan.DrawFrameAsync().Wait();
+            }
 
 
             vulkan.Dispose();

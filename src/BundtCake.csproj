@@ -14,5 +14,6 @@
     <PackageReference Include="BundtCommon" Version="1.0.4"/>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2"/>
     <PackageReference Include="GlmNet" Version="0.5.1"/>
+    <PackageReference Include="ImageSharp" Version="1.0.0-alpha9-00057"/>
   </ItemGroup>
 </Project>

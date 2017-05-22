@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GlmNet;
 using Vulkan;
@@ -7,9 +9,9 @@ namespace BundtCake
     //[StructLayout(LayoutKind.Sequential)]
     struct Vertex
     {
-        vec3 pos;
-        vec3 color;
-        vec2 texCoord;
+        public vec3 pos;
+        public vec3 color;
+        public vec2 texCoord;
 
         public static VertexInputBindingDescription GetBindingDescription()
         {
@@ -44,6 +46,45 @@ namespace BundtCake
             attributeDescriptions[2].Offset = 6 * sizeof(float);
 
             return attributeDescriptions;
+        }
+
+        public static IEnumerable<byte> VertexArrayToByteArray(IEnumerable<Vertex> vertices)
+        {
+            var verticesBytes = new List<byte>();
+
+            foreach (var vertex in vertices)
+            {
+                foreach (var b in vertex.GetBytes())
+                {
+                    verticesBytes.Add(b);
+                }
+            }
+
+            return verticesBytes;
+        }
+
+        public IEnumerable<byte> GetBytes()
+        {
+            var byteList = new List<byte>();
+
+            foo(byteList, pos.x);
+            foo(byteList, pos.y);
+            foo(byteList, pos.z);
+            foo(byteList, color.x);
+            foo(byteList, color.y);
+            foo(byteList, color.z);
+            foo(byteList, texCoord.x);
+            foo(byteList, texCoord.y);
+
+            return byteList;
+        }
+
+        void foo(List<byte> bytes, float appendFloat)
+        {
+            foreach (var item in BitConverter.GetBytes(appendFloat))
+            {
+                bytes.Add(item);
+            }
         }
     }
 }
