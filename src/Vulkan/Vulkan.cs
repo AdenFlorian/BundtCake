@@ -1478,6 +1478,8 @@ namespace BundtCake
 
         public void Dispose()
         {
+            _device.WaitIdle();
+            
             CleanupSwapchain();
 
             // _device.DestroySampler(_textureSampler);

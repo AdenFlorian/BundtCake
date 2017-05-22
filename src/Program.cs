@@ -34,9 +34,7 @@ namespace BundtCake
                 vulkan.DrawFrame();
             }
 
-
             vulkan.Dispose();
-
 
             // glfwDestroyWindow(window);
 
