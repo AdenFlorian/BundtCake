@@ -684,7 +684,7 @@ namespace BundtCake
                 RasterizerDiscardEnable = false,
                 PolygonMode = PolygonMode.Fill,
                 CullMode = CullModeFlags.Back,
-                FrontFace = FrontFace.Clockwise,
+                FrontFace = FrontFace.CounterClockwise,
                 DepthBiasEnable = false,
                 //DepthBiasConstantFactor = ,
                 //DepthBiasClamp = ,
@@ -1418,16 +1418,13 @@ namespace BundtCake
             // ubo.Projection = new mat4(1f);
 
 
-            ubo.Model = glm.rotate(new mat4(1f), (float)elapsedTime.TotalSeconds * glm.radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
+            ubo.Model = glm.rotate(new mat4(1f), /*(float)elapsedTime.TotalSeconds **/ glm.radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
             ubo.View = glm.lookAt(new vec3(2.0f, 2.0f, 2.0f), new vec3(0.0f, 0.0f, 0.0f), new vec3(0.0f, 0.0f, 1.0f));
             ubo.Projection = glm.perspective(glm.radians(45.0f), _swapChainExtent.Width / (float)_swapChainExtent.Height, 0.1f, 10.0f);
 
             //ubo.Projection = new mat4();
-            //ubo.Projection.
 
-            //ubo.Projection[1][1].
-
-            //ubo.Projection[1,1] *= -1;
+            ubo.Projection[1,1] *= -1;
 
             //ubo.Projection[1][1] *= -1;
 
@@ -1532,10 +1529,10 @@ namespace BundtCake
             // _device.DestroyImage(_depthImage);
             // _device.FreeMemory(_depthImageMemory);
 
-            foreach (var frameBuffer in _swapChainFramebuffers)
-            {
-                _device.DestroyFramebuffer(frameBuffer);
-            }
+            // foreach (var frameBuffer in _swapChainFramebuffers)
+            // {
+            //     _device.DestroyFramebuffer(frameBuffer);
+            // }
 
             _device.FreeCommandBuffers(_commandPool, _commandBuffers);
 

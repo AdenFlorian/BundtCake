@@ -36,14 +36,17 @@ namespace BundtCake
             AppendFloatBytesToBytes(bytes, mat[0, 1]);
             AppendFloatBytesToBytes(bytes, mat[0, 2]);
             AppendFloatBytesToBytes(bytes, mat[0, 3]);
+
             AppendFloatBytesToBytes(bytes, mat[1, 0]);
             AppendFloatBytesToBytes(bytes, mat[1, 1]);
             AppendFloatBytesToBytes(bytes, mat[1, 2]);
             AppendFloatBytesToBytes(bytes, mat[1, 3]);
+
             AppendFloatBytesToBytes(bytes, mat[2, 0]);
             AppendFloatBytesToBytes(bytes, mat[2, 1]);
             AppendFloatBytesToBytes(bytes, mat[2, 2]);
             AppendFloatBytesToBytes(bytes, mat[2, 3]);
+            
             AppendFloatBytesToBytes(bytes, mat[3, 0]);
             AppendFloatBytesToBytes(bytes, mat[3, 1]);
             AppendFloatBytesToBytes(bytes, mat[3, 2]);
