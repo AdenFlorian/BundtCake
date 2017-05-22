@@ -684,7 +684,7 @@ namespace BundtCake
                 RasterizerDiscardEnable = false,
                 PolygonMode = PolygonMode.Fill,
                 CullMode = CullModeFlags.Back,
-                FrontFace = FrontFace.CounterClockwise,
+                FrontFace = FrontFace.Clockwise,
                 DepthBiasEnable = false,
                 //DepthBiasConstantFactor = ,
                 //DepthBiasClamp = ,
