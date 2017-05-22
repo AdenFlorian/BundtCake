@@ -43,9 +43,9 @@ namespace BundtCake
         // DeviceMemory _textureImageMemory;
         // ImageView _textureImageView;
         // Sampler _textureSampler;
-        // ImageView _depthImageView;
-        // Image _depthImage;
-        // DeviceMemory _depthImageMemory;
+        ImageView _depthImageView;
+        Image _depthImage;
+        DeviceMemory _depthImageMemory;
         List<Framebuffer> _swapChainFramebuffers;
         VkBuffer _vertexBuffer;
         DeviceMemory _vertexBufferMemory;
@@ -141,7 +141,7 @@ namespace BundtCake
             CreateCommandPool();
             CreateTempCommandPool();
 
-            //CreateDepthResources();
+            CreateDepthResources();
 
             CreateFramebuffers();
 
@@ -500,17 +500,17 @@ namespace BundtCake
                         InitialLayout = ImageLayout.Undefined,
                         FinalLayout = ImageLayout.PresentSrcKhr
                     },
-                    // new AttachmentDescription
-                    // {
-                    //     Format = FindDepthFormat(),
-                    //     Samples = SampleCountFlags.Count1,
-                    //     LoadOp = AttachmentLoadOp.Clear,
-                    //     StoreOp = AttachmentStoreOp.DontCare,
-                    //     StencilLoadOp = AttachmentLoadOp.DontCare,
-                    //     StencilStoreOp = AttachmentStoreOp.DontCare,
-                    //     InitialLayout = ImageLayout.Undefined,
-                    //     FinalLayout = ImageLayout.DepthStencilAttachmentOptimal
-                    // }
+                    new AttachmentDescription
+                    {
+                        Format = FindDepthFormat(),
+                        Samples = SampleCountFlags.Count1,
+                        LoadOp = AttachmentLoadOp.Clear,
+                        StoreOp = AttachmentStoreOp.DontCare,
+                        StencilLoadOp = AttachmentLoadOp.DontCare,
+                        StencilStoreOp = AttachmentStoreOp.DontCare,
+                        InitialLayout = ImageLayout.Undefined,
+                        FinalLayout = ImageLayout.DepthStencilAttachmentOptimal
+                    }
                 },
                 Subpasses = new SubpassDescription[]
                 {
@@ -519,7 +519,6 @@ namespace BundtCake
                         PipelineBindPoint = PipelineBindPoint.Graphics,
                         //InputAttachmentCount = ,
                         //InputAttachments = ,
-                        //ColorAttachmentCount = 1,
                         ColorAttachments = new AttachmentReference[]
                         {
                             new AttachmentReference
@@ -529,12 +528,11 @@ namespace BundtCake
                             }
                         },
                         //ResolveAttachments = ,
-                        // DepthStencilAttachment = new AttachmentReference
-                        // {
-                        //     Attachment = 1,
-                        //     Layout = ImageLayout.DepthStencilAttachmentOptimal
-                        // },
-                        //PreserveAttachmentCount = ,
+                        DepthStencilAttachment = new AttachmentReference
+                        {
+                            Attachment = 1,
+                            Layout = ImageLayout.DepthStencilAttachmentOptimal
+                        },
                         //PreserveAttachments = 
                     }
                 },
@@ -556,13 +554,13 @@ namespace BundtCake
             return _device.CreateRenderPass(renderPassInfo);
         }
 
-        // Format FindDepthFormat()
-        // {
-        //     return FindSupportedFormat(new Format[] { Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint },
-        //         ImageTiling.Optimal,
-        //         FormatFeatureFlags.DepthStencilAttachment
-        //     );
-        // }
+        Format FindDepthFormat()
+        {
+            return FindSupportedFormat(new Format[] { Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint },
+                ImageTiling.Optimal,
+                FormatFeatureFlags.DepthStencilAttachment
+            );
+        }
 
         Format FindSupportedFormat(IEnumerable<Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
         {
@@ -797,15 +795,15 @@ namespace BundtCake
             _tempCommandPool = _device.CreateCommandPool(commandPoolCreateInfo);
         }
 
-        // void CreateDepthResources()
-        // {
-        //     var depthFormat = FindDepthFormat();
-        //     CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachment, MemoryPropertyFlags.DeviceLocal, out _depthImage, out _depthImageMemory);
+        void CreateDepthResources()
+        {
+            var depthFormat = FindDepthFormat();
+            CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachment, MemoryPropertyFlags.DeviceLocal, out _depthImage, out _depthImageMemory);
 
-        //     _depthImageView = createImageView(_depthImage, depthFormat, ImageAspectFlags.Depth);
+            _depthImageView = createImageView(_depthImage, depthFormat, ImageAspectFlags.Depth);
 
-        //     TransitionImageLayout(_depthImage, depthFormat, ImageLayout.Undefined, ImageLayout.DepthStencilAttachmentOptimal);
-        // }
+            TransitionImageLayout(_depthImage, depthFormat, ImageLayout.Undefined, ImageLayout.DepthStencilAttachmentOptimal);
+        }
 
         static bool HasStencilComponent(Format format)
         {
@@ -1179,7 +1177,7 @@ namespace BundtCake
             {
                 var attachments = new ImageView[]
                 {
-                    _swapChainImageViews[i]//, _depthImageView
+                    _swapChainImageViews[i], _depthImageView
                 };
 
                 var framebufferCreateInfo = new FramebufferCreateInfo
@@ -1515,14 +1513,14 @@ namespace BundtCake
 
         void CleanupSwapchain()
         {
-            // _device.DestroyImageView(_depthImageView);
-            // _device.DestroyImage(_depthImage);
-            // _device.FreeMemory(_depthImageMemory);
+            _device.DestroyImageView(_depthImageView);
+            _device.DestroyImage(_depthImage);
+            _device.FreeMemory(_depthImageMemory);
 
-            // foreach (var frameBuffer in _swapChainFramebuffers)
-            // {
-            //     _device.DestroyFramebuffer(frameBuffer);
-            // }
+            foreach (var frameBuffer in _swapChainFramebuffers)
+            {
+                _device.DestroyFramebuffer(frameBuffer);
+            }
 
             _device.FreeCommandBuffers(_commandPool, _commandBuffers);
 
