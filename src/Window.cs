@@ -16,6 +16,7 @@ namespace BundtCake
                 return info.info.win.window;
             }
         }
+        public uint Id => SDL.SDL_GetWindowID(_sdlWindowPtr);
 
         IntPtr _sdlWindowPtr;
 
@@ -29,6 +30,11 @@ namespace BundtCake
             int width, height;
             SDL.SDL_GetWindowSize(_sdlWindowPtr, out width, out height);
             return new Rectangle(0, 0, width, height);
+        }
+
+        public void Dispose()
+        {
+            SDL.SDL_DestroyWindow(_sdlWindowPtr);
         }
     }
 }

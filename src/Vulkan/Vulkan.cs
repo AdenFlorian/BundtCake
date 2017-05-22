@@ -65,6 +65,8 @@ namespace BundtCake
         uint _graphicsQueueFamilyIndex;
         uint _presentQueueFamilyIndex;
 
+        bool _isDisposed;
+
         List<Vertex> _mainMeshVertices = new List<Vertex>
         {
             new Vertex{pos = new vec3(-0.5f, -0.5f, 0.0f), color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
@@ -83,18 +85,6 @@ namespace BundtCake
             0, 1, 2, 2, 3, 0,
             4, 5, 6, 6, 7, 4
         };
-
-        // List<Vertex> _mainMeshVertices = new List<Vertex>
-        // {
-        //     new Vertex{pos = new vec3(-0.5f, -0.5f, 0.0f), color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-        //     new Vertex{pos = new vec3(0.5f, -0.5f, 0.0f),  color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-        //     new Vertex{pos = new vec3(0.5f, 0.5f, 0.0f),   color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)}
-        // };
-
-        // List<UInt32> _mainMeshIndices = new List<UInt32>
-        // {
-        //     0, 1, 2
-        // };
 
         public void Initialize(Window window)
         {
@@ -1431,6 +1421,8 @@ namespace BundtCake
         {
             if (_window.GetSize().Width == 0 || _window.GetSize().Height == 0) return;
 
+            _device.WaitIdle();
+
             RecreateSwapchain();
         }
 
@@ -1492,6 +1484,9 @@ namespace BundtCake
 
         public void Dispose()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             _device.WaitIdle();
 
             CleanupSwapchain();
