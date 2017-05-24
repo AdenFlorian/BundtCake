@@ -57,17 +57,24 @@ namespace BundtCake
 
         LoopDo HandleSdlEvent(SDL_Event sdlEvent)
         {
-            if (sdlEvent.type == SDL_EventType.SDL_QUIT)
+            switch (sdlEvent.type)
             {
-                return LoopDo.Break;
+                case SDL_EventType.SDL_QUIT: return LoopDo.Break;
+                case SDL_EventType.SDL_WINDOWEVENT: return HandleWindowEvent(sdlEvent.window);
+                default: break;
             }
-            if (sdlEvent.type == SDL_EventType.SDL_WINDOWEVENT && sdlEvent.window.windowID == _window.Id)
+            return LoopDo.Nothing;
+        }
+
+        LoopDo HandleWindowEvent(SDL_WindowEvent windowEvent)
+        {
+            if (windowEvent.windowID == _window.Id)
             {
-                if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
+                if (windowEvent.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
                 {
                     return LoopDo.Break;
                 }
-                if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                if (windowEvent.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
                     _vulkan.OnWindowResized();
                     return LoopDo.Continue;
