@@ -47,14 +47,18 @@ namespace BundtCake
         Image _depthImage;
         DeviceMemory _depthImageMemory;
         List<Framebuffer> _swapChainFramebuffers;
-        VkBuffer _vertexBuffer;
-        DeviceMemory _vertexBufferMemory;
-        VkBuffer _indexBuffer;
-        DeviceMemory _indexBufferMemory;
-        VkBuffer _uniformBuffer;
-        DeviceMemory _uniformBufferMemory;
+        //VkBuffer _vertexBuffer;
+        Dictionary<int, VkBuffer> _vertexBuffers = new Dictionary<int, VkBuffer>();
+        //DeviceMemory _vertexBufferMemory;
+        Dictionary<int, DeviceMemory> _vertexBufferMemories = new Dictionary<int, DeviceMemory>();
+        //VkBuffer _indexBuffer;
+        Dictionary<int, VkBuffer> _indexBuffers = new Dictionary<int, VkBuffer>();
+        //DeviceMemory _indexBufferMemory;
+        Dictionary<int, DeviceMemory> _indexBufferMemories = new Dictionary<int, DeviceMemory>();
+        Dictionary<int, VkBuffer> _uniformBuffers = new Dictionary<int, VkBuffer>();
+        Dictionary<int, DeviceMemory> _uniformBufferMemories = new Dictionary<int, DeviceMemory>();
         DescriptorPool _descriptorPool;
-        DescriptorSet _descriptorSet;
+        Dictionary<int, DescriptorSet> _descriptorSets = new Dictionary<int, DescriptorSet>();
         CommandBuffer[] _commandBuffers;
         Semaphore _imageAvailableSemaphore;
         Semaphore _renderFinishedSemaphore;
@@ -67,28 +71,16 @@ namespace BundtCake
 
         bool _isDisposed;
 
-        List<Vertex> _mainMeshVertices = new List<Vertex>
-        {
-            new Vertex{pos = new vec3(-0.5f, -0.5f, 0.0f), color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-            new Vertex{pos = new vec3(0.5f, -0.5f, 0.0f),  color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-            new Vertex{pos = new vec3(0.5f, 0.5f, 0.0f),   color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)},
-            new Vertex{pos = new vec3(-0.5f, 0.5f, 0.0f),  color = new vec3(1.0f, 0.3f, 0.7f), texCoord = new vec2(0.0f, 1.0f)},
+        //GameObject _gameObject;
+        Dictionary<int, GameObject> _gameObjects = new Dictionary<int, GameObject>();
 
-            new Vertex{pos = new vec3(-0.5f, -0.5f, -0.5f),color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-            new Vertex{pos = new vec3(0.5f, -0.5f, -0.5f), color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-            new Vertex{pos = new vec3(0.5f, 0.5f, -0.5f),  color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)},
-            new Vertex{pos = new vec3(-0.5f, 0.5f, -0.5f), color = new vec3(1.0f, 0.3f, 0.7f), texCoord = new vec2(0.0f, 1.0f)}
-        };
-
-        List<UInt32> _mainMeshIndices = new List<UInt32>
-        {
-            0, 1, 2, 2, 3, 0,
-            4, 5, 6, 6, 7, 4
-        };
-
-        public void Initialize(Window window)
+        public void Initialize(Window window, IEnumerable<GameObject> gameObjects)
         {
             _window = window;
+            foreach (var gameObject in gameObjects)
+            {
+                _gameObjects[gameObject.Id] = gameObject;
+            }
 
             _logger.LogInfo("Initializing Vulkan...");
 
@@ -138,12 +130,12 @@ namespace BundtCake
 
             // // loadModel();
 
-            CreateVertexBuffer();
-            CreateIndexBuffer();
+            CreateVertexBuffers();
+            CreateIndexBuffers();
             CreateUniformBuffer();
 
             CreateDescriptorPool();
-            CreateDescriptorSet();
+            CreateDescriptorSets();
 
             CreateCommandBuffers();
 
@@ -678,7 +670,7 @@ namespace BundtCake
                 DepthClampEnable = false,
                 RasterizerDiscardEnable = false,
                 PolygonMode = PolygonMode.Fill,
-                CullMode = CullModeFlags.Back,
+                CullMode = CullModeFlags.None,
                 FrontFace = FrontFace.CounterClockwise,
                 DepthBiasEnable = false,
                 //DepthBiasConstantFactor = ,
@@ -1190,55 +1182,82 @@ namespace BundtCake
             }
         }
 
-        void CreateVertexBuffer()
+        void CreateVertexBuffers()
         {
-            var bufferSize = Marshal.SizeOf(_mainMeshVertices[0]) * _mainMeshVertices.Count;
-            VkBuffer stagingBuffer;
-            DeviceMemory stagingBufferMemory;
-            CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
+            foreach (var gameObject in _gameObjects.Values)
+            {
+                var bufferSize = Marshal.SizeOf(gameObject.Vertices[0]) * gameObject.Vertices.Count;
+                VkBuffer stagingBuffer;
+                DeviceMemory stagingBufferMemory;
+                CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
 
-            CopyToBufferMemory(Vertex.VertexArrayToByteArray(_mainMeshVertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
+                CopyToBufferMemory(Vertex.VertexArrayToByteArray(gameObject.Vertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
 
-            CreateBuffer(bufferSize, BufferUsageFlags.TransferDst | BufferUsageFlags.VertexBuffer, MemoryPropertyFlags.DeviceLocal, out _vertexBuffer, out _vertexBufferMemory);
+                VkBuffer vertexBuffer;
+                DeviceMemory vertexBufferMemory;
 
-            CopyBuffer(stagingBuffer, _vertexBuffer, bufferSize);
+                CreateBuffer(bufferSize, BufferUsageFlags.TransferDst | BufferUsageFlags.VertexBuffer, MemoryPropertyFlags.DeviceLocal, out vertexBuffer, out vertexBufferMemory);
 
-            _device.DestroyBuffer(stagingBuffer);
-            _device.FreeMemory(stagingBufferMemory);
+                CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+                _vertexBuffers[gameObject.Id] = vertexBuffer;
+                _vertexBufferMemories[gameObject.Id] = vertexBufferMemory;
+
+                _device.DestroyBuffer(stagingBuffer);
+                _device.FreeMemory(stagingBufferMemory);
+            }
         }
 
-        void CreateIndexBuffer()
+        void CreateIndexBuffers()
         {
-            var bufferSize = Marshal.SizeOf(_mainMeshIndices[0]) * _mainMeshIndices.Count;
-
-            VkBuffer stagingBuffer;
-            DeviceMemory stagingBufferMemory;
-            CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
-
-            var indicesBytes = new List<byte>();
-
-            foreach (var index in _mainMeshIndices)
+            foreach (var gameObject in _gameObjects.Values)
             {
-                foreach (var b in BitConverter.GetBytes(index))
+                var bufferSize = Marshal.SizeOf(gameObject.Indices[0]) * gameObject.Indices.Count;
+
+                VkBuffer stagingBuffer;
+                DeviceMemory stagingBufferMemory;
+                CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
+
+                var indicesBytes = new List<byte>();
+
+                foreach (var index in gameObject.Indices)
                 {
-                    indicesBytes.Add(b);
+                    foreach (var b in BitConverter.GetBytes(index))
+                    {
+                        indicesBytes.Add(b);
+                    }
                 }
+
+                CopyToBufferMemory(indicesBytes.ToArray(), stagingBufferMemory, 0, bufferSize, 0);
+
+                VkBuffer indexBuffer;
+                DeviceMemory indexBufferMemory;
+
+                CreateBuffer(bufferSize, BufferUsageFlags.TransferDst | BufferUsageFlags.IndexBuffer, MemoryPropertyFlags.DeviceLocal, out indexBuffer, out indexBufferMemory);
+
+                CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
+
+                _indexBuffers[gameObject.Id] = indexBuffer;
+                _indexBufferMemories[gameObject.Id] = indexBufferMemory;
+
+                _device.DestroyBuffer(stagingBuffer);
+                _device.FreeMemory(stagingBufferMemory);
             }
-
-            CopyToBufferMemory(indicesBytes.ToArray(), stagingBufferMemory, 0, bufferSize, 0);
-
-            CreateBuffer(bufferSize, BufferUsageFlags.TransferDst | BufferUsageFlags.IndexBuffer, MemoryPropertyFlags.DeviceLocal, out _indexBuffer, out _indexBufferMemory);
-
-            CopyBuffer(stagingBuffer, _indexBuffer, bufferSize);
-
-            _device.DestroyBuffer(stagingBuffer);
-            _device.FreeMemory(stagingBufferMemory);
         }
 
         void CreateUniformBuffer()
         {
             var bufferSize = UniformBufferObject.GetSizeInBytes();
-            CreateBuffer(bufferSize, BufferUsageFlags.UniformBuffer, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out _uniformBuffer, out _uniformBufferMemory);
+            foreach (var index in _gameObjects.Keys)
+            {
+                VkBuffer uniformBuffer;
+                DeviceMemory uniformBufferMemory;
+                
+                CreateBuffer(bufferSize, BufferUsageFlags.UniformBuffer, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out uniformBuffer, out uniformBufferMemory);
+
+                _uniformBuffers[index] = uniformBuffer;
+                _uniformBufferMemories[index] = uniformBufferMemory;
+            }
         }
 
         void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, DeviceSize size)
@@ -1260,44 +1279,58 @@ namespace BundtCake
             var poolSizes = new DescriptorPoolSize[2];
 
             poolSizes[0].Type = DescriptorType.UniformBuffer;
-            poolSizes[0].DescriptorCount = 1;
+            poolSizes[0].DescriptorCount = (uint)_gameObjects.Count;
 
             poolSizes[1].Type = DescriptorType.CombinedImageSampler;
-            poolSizes[1].DescriptorCount = 1;
+            poolSizes[1].DescriptorCount = (uint)_gameObjects.Count;
 
             var poolInfo = new DescriptorPoolCreateInfo
             {
                 Flags = 0,
-                MaxSets = 1,
+                MaxSets = (uint)_gameObjects.Count,
                 PoolSizes = poolSizes
             };
 
             _descriptorPool = _device.CreateDescriptorPool(poolInfo);
         }
 
-        void CreateDescriptorSet()
+        void CreateDescriptorSets()
         {
-            var layouts = new DescriptorSetLayout[] { _descriptorSetLayout };
+            foreach (var index in _gameObjects.Keys)
+            {
+                _descriptorSets[index] = CreateDescriptorSet(_descriptorSetLayout,
+                    _descriptorPool,
+                    _uniformBuffers[index],
+                    _textureSampler,
+                    _textureImageView);
+            }
+        }
 
+        DescriptorSet CreateDescriptorSet(DescriptorSetLayout descriptorSetLayout,
+            DescriptorPool descriptorPool,
+            VkBuffer uniformBuffer,
+            Sampler textureSampler,
+            ImageView textureImageView)
+        {
             var allocInfo = new DescriptorSetAllocateInfo
             {
-                DescriptorPool = _descriptorPool,
-                SetLayouts = layouts
+                DescriptorPool = descriptorPool,
+                SetLayouts = new DescriptorSetLayout[] { descriptorSetLayout }
             };
 
-            _descriptorSet = _device.AllocateDescriptorSets(allocInfo)[0];
+            var descriptorSet = _device.AllocateDescriptorSets(allocInfo)[0];
 
             var bufferInfo = new DescriptorBufferInfo
             {
-                Buffer = _uniformBuffer,
+                Buffer = uniformBuffer,
                 Offset = 0,
                 Range = UniformBufferObject.GetSizeInBytes()
             };
 
             var imageInfo = new DescriptorImageInfo
             {
-                Sampler = _textureSampler,
-                ImageView = _textureImageView,
+                Sampler = textureSampler,
+                ImageView = textureImageView,
                 ImageLayout = ImageLayout.ShaderReadOnlyOptimal
             };
 
@@ -1305,7 +1338,7 @@ namespace BundtCake
             {
                 new WriteDescriptorSet
                 {
-                    DstSet = _descriptorSet,
+                    DstSet = descriptorSet,
                     DstBinding = 0,
                     DstArrayElement = 0,
                     DescriptorCount = 1,
@@ -1314,7 +1347,7 @@ namespace BundtCake
                 },
                 new WriteDescriptorSet
                 {
-                    DstSet = _descriptorSet,
+                    DstSet = descriptorSet,
                     DstBinding = 1,
                     DstArrayElement = 0,
                     DescriptorCount = 1,
@@ -1324,6 +1357,8 @@ namespace BundtCake
             };
 
             _device.UpdateDescriptorSets(descriptorWrites, null);
+
+            return descriptorSet;
         }
 
         void CreateCommandBuffers()
@@ -1358,11 +1393,7 @@ namespace BundtCake
                     Framebuffer = _swapChainFramebuffers[i],
                     RenderArea = new Rect2D
                     {
-                        Offset = new Offset2D
-                        {
-                            X = 0,
-                            Y = 0
-                        },
+                        Offset = new Offset2D { X = 0, Y = 0 },
                         Extent = _swapChainExtent
                     },
                     ClearValues = clearValues
@@ -1372,15 +1403,14 @@ namespace BundtCake
 
                 _commandBuffers[i].CmdBindPipeline(PipelineBindPoint.Graphics, _graphicsPipeline);
 
-                var vertexBuffers = new VkBuffer[] { _vertexBuffer };
-                var offsets = new DeviceSize[] { 0 };
-                _commandBuffers[i].CmdBindVertexBuffers(0, vertexBuffers, offsets);
-
-                _commandBuffers[i].CmdBindIndexBuffer(_indexBuffer, 0, IndexType.Uint32);
-
-                _commandBuffers[i].CmdBindDescriptorSets(PipelineBindPoint.Graphics, _graphicsPipelineLayout, 0, new DescriptorSet[] {_descriptorSet}, null);
-
-                _commandBuffers[i].CmdDrawIndexed((uint)_mainMeshIndices.Count, 1, 0, 0, 0);
+                foreach (var gameObject in _gameObjects.Values)
+                {
+                    _commandBuffers[i].CmdBindVertexBuffers(0, new VkBuffer[] { _vertexBuffers[gameObject.Id] }, new DeviceSize[] { 0 });
+                    _commandBuffers[i].CmdBindIndexBuffer(_indexBuffers[gameObject.Id], 0, IndexType.Uint32);
+                    // TODO Should have one descriptor set per object, each having its own uniformbuffer
+                    _commandBuffers[i].CmdBindDescriptorSets(PipelineBindPoint.Graphics, _graphicsPipelineLayout, 0, new DescriptorSet[] { _descriptorSets[gameObject.Id] }, null);
+                    _commandBuffers[i].CmdDrawIndexed((uint)gameObject.Indices.Count, 1, 0, 0, 0);
+                }
 
                 _commandBuffers[i].CmdEndRenderPass();
         
@@ -1398,23 +1428,28 @@ namespace BundtCake
 
         DateTime _startTime = DateTime.Now;
 
-        public void UpdateUniformBuffer()
+        public void UpdateUniformBuffer(GameObject gameObject)
         {
             var currentTime = DateTime.Now;
             var elapsedTime = currentTime - _startTime;
 
             var ubo = new UniformBufferObject();
 
-            //ubo.Model = glm.translate(new mat4(1f), new vec3(-3.0f, -3.0f, -3.0f));
-            //ubo.Model = glm.rotate(ubo.Model, glm.radians(90.0f), new vec3(1.0f, 0.0f, 0.0f));
+            ubo.Model = glm.translate(new mat4(1f), gameObject.Transform.Position);
 
-            ubo.Model = glm.rotate(new mat4(1f), (float)elapsedTime.TotalSeconds * glm.radians(90.0f), new vec3(0.0f, 0.0f, 1.0f));
+            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
+            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
+            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
+
+            ubo.Model = glm.scale(ubo.Model, gameObject.Transform.Scale);
+
             ubo.View = glm.lookAt(new vec3(2.0f, 2.0f, 2.0f), new vec3(0.0f, 0.0f, 0.0f), new vec3(0.0f, 0.0f, 1.0f));
+
             ubo.Projection = glm.perspective(glm.radians(45.0f), _swapChainExtent.Width / (float)_swapChainExtent.Height, 0.1f, 10.0f);
 
             ubo.Projection[1,1] *= -1;
 
-            CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemory, 0, ubo.GetBytes().ToArray().Length, 0);
+            CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemories[gameObject.Id], 0, ubo.GetBytes().ToArray().Length, 0);
         }
 
         public void OnWindowResized()
@@ -1428,6 +1463,11 @@ namespace BundtCake
 
         public void DrawFrame()
         {
+            foreach (var gameObject in _gameObjects.Values)
+            {
+                UpdateUniformBuffer(gameObject);
+            }
+
             uint imageIndex;
             try
             {
@@ -1501,14 +1541,21 @@ namespace BundtCake
 
             _device.DestroyDescriptorSetLayout(_descriptorSetLayout);
 
-            _device.DestroyBuffer(_uniformBuffer);
-            _device.FreeMemory(_uniformBufferMemory);
+            foreach (var index in _gameObjects.Keys)
+            {
+                _device.DestroyBuffer(_uniformBuffers[index]);
+                _device.FreeMemory(_uniformBufferMemories[index]);
+            }
 
-            _device.DestroyBuffer(_indexBuffer);
-            _device.FreeMemory(_indexBufferMemory);
 
-            _device.DestroyBuffer(_vertexBuffer);
-            _device.FreeMemory(_vertexBufferMemory);
+            foreach (var gameObject in _gameObjects.Values)
+            {
+                _device.DestroyBuffer(_indexBuffers[gameObject.Id]);
+                _device.FreeMemory(_indexBufferMemories[gameObject.Id]);
+
+                _device.DestroyBuffer(_vertexBuffers[gameObject.Id]);
+                _device.FreeMemory(_vertexBufferMemories[gameObject.Id]);
+            }
 
             _device.DestroySemaphore(_renderFinishedSemaphore);
             _device.DestroySemaphore(_imageAvailableSemaphore);
