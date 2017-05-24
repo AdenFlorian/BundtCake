@@ -15,6 +15,8 @@ namespace BundtCake
 {
     class Vulkan
     {
+        public Transform CameraTransform = new Transform();
+
         const uint VK_SUBPASS_EXTERNAL = ~0U;
         const uint VK_QUEUE_FAMILY_IGNORED = ~0U;
         const string TEXTURE_PATH = "textures/a-button.png";
@@ -1443,7 +1445,7 @@ namespace BundtCake
 
             ubo.Model = glm.scale(ubo.Model, gameObject.Transform.Scale);
 
-            ubo.View = glm.lookAt(new vec3(2.0f, 2.0f, 2.0f), new vec3(0.0f, 0.0f, 0.0f), new vec3(0.0f, 0.0f, 1.0f));
+            ubo.View = glm.lookAt(CameraTransform.Position, new vec3(0.0f, 0.0f, 0.0f), new vec3(0.0f, 0.0f, 1.0f));
 
             ubo.Projection = glm.perspective(glm.radians(45.0f), _swapChainExtent.Width / (float)_swapChainExtent.Height, 0.1f, 10.0f);
 
