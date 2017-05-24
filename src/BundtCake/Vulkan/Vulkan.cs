@@ -1186,12 +1186,12 @@ namespace BundtCake
         {
             foreach (var gameObject in _gameObjects.Values)
             {
-                var bufferSize = Marshal.SizeOf(gameObject.Vertices[0]) * gameObject.Vertices.Count;
+                var bufferSize = Marshal.SizeOf(gameObject.Mesh.Vertices[0]) * gameObject.Mesh.Vertices.Count;
                 VkBuffer stagingBuffer;
                 DeviceMemory stagingBufferMemory;
                 CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
 
-                CopyToBufferMemory(Vertex.VertexArrayToByteArray(gameObject.Vertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
+                CopyToBufferMemory(Vertex.VertexArrayToByteArray(gameObject.Mesh.Vertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
 
                 VkBuffer vertexBuffer;
                 DeviceMemory vertexBufferMemory;
@@ -1212,7 +1212,7 @@ namespace BundtCake
         {
             foreach (var gameObject in _gameObjects.Values)
             {
-                var bufferSize = Marshal.SizeOf(gameObject.Indices[0]) * gameObject.Indices.Count;
+                var bufferSize = Marshal.SizeOf(gameObject.Mesh.Indices[0]) * gameObject.Mesh.Indices.Length;
 
                 VkBuffer stagingBuffer;
                 DeviceMemory stagingBufferMemory;
@@ -1220,7 +1220,7 @@ namespace BundtCake
 
                 var indicesBytes = new List<byte>();
 
-                foreach (var index in gameObject.Indices)
+                foreach (var index in gameObject.Mesh.Indices)
                 {
                     foreach (var b in BitConverter.GetBytes(index))
                     {
@@ -1409,7 +1409,7 @@ namespace BundtCake
                     _commandBuffers[i].CmdBindIndexBuffer(_indexBuffers[gameObject.Id], 0, IndexType.Uint32);
                     // TODO Should have one descriptor set per object, each having its own uniformbuffer
                     _commandBuffers[i].CmdBindDescriptorSets(PipelineBindPoint.Graphics, _graphicsPipelineLayout, 0, new DescriptorSet[] { _descriptorSets[gameObject.Id] }, null);
-                    _commandBuffers[i].CmdDrawIndexed((uint)gameObject.Indices.Count, 1, 0, 0, 0);
+                    _commandBuffers[i].CmdDrawIndexed((uint)gameObject.Mesh.Indices.Length, 1, 0, 0, 0);
                 }
 
                 _commandBuffers[i].CmdEndRenderPass();

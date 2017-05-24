@@ -10,7 +10,7 @@ namespace BundtCake
 
         public int Id = nextId++;
         public Transform Transform = new Transform();
-        public List<Vertex> Vertices = new List<Vertex>();
-        public List<UInt32> Indices = new List<UInt32>();
+        //public List<Vertex> Vertices = new List<Vertex>();
+        public Mesh Mesh = new Mesh();
     }
 }

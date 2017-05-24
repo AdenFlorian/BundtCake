@@ -19,19 +19,40 @@ namespace BundtCake
             MyLogger.SetLogLevelOverride(LogLevel.Debug);
 
             var myGameObject = new GameObject();
-            myGameObject.Vertices = new List<Vertex>
+            myGameObject.Mesh.VertexPositions = new vec3[]
             {
-                new Vertex{pos = new vec3(-0.5f, -0.5f, 0.0f), color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-                new Vertex{pos = new vec3(0.5f, -0.5f, 0.0f),  color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-                new Vertex{pos = new vec3(0.5f, 0.5f, 0.0f),   color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)},
-                new Vertex{pos = new vec3(-0.5f, 0.5f, 0.0f),  color = new vec3(1.0f, 0.3f, 0.7f), texCoord = new vec2(0.0f, 1.0f)},
-
-                new Vertex{pos = new vec3(-1.5f, -0.5f, -0.5f),color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-                new Vertex{pos = new vec3(1.5f, -0.5f, -0.5f), color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-                new Vertex{pos = new vec3(1.5f, 0.5f, -0.5f),  color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)},
-                new Vertex{pos = new vec3(-1.5f, 0.5f, -0.5f), color = new vec3(1.0f, 0.3f, 0.7f), texCoord = new vec2(0.0f, 1.0f)}
+                new vec3(-0.5f, -0.5f, 0.0f), 
+                new vec3(0.5f, -0.5f, 0.0f),  
+                new vec3(0.5f, 0.5f, 0.0f),   
+                new vec3(-0.5f, 0.5f, 0.0f),  
+                new vec3(-1.5f, -0.5f, -0.5f),
+                new vec3(1.5f, -0.5f, -0.5f), 
+                new vec3(1.5f, 0.5f, -0.5f),  
+                new vec3(-1.5f, 0.5f, -0.5f), 
             };
-            myGameObject.Indices = new List<UInt32>
+            myGameObject.Mesh.Colors = new vec3[]
+            {
+                new vec3(1.0f, 0.3f, 0.0f),
+                new vec3(0.9f, 0.7f, 0.6f),
+                new vec3(0.7f, 0.0f, 1.0f),
+                new vec3(1.0f, 0.3f, 0.7f),
+                new vec3(1.0f, 0.3f, 0.0f),
+                new vec3(0.9f, 0.7f, 0.6f),
+                new vec3(0.7f, 0.0f, 1.0f),
+                new vec3(1.0f, 0.3f, 0.7f),
+            };
+            myGameObject.Mesh.TexCoords = new vec2[]
+            {
+                new vec2(0.0f, 0.0f),
+                new vec2(1.0f, 0.0f),
+                new vec2(1.0f, 1.0f),
+                new vec2(0.0f, 1.0f),
+                new vec2(0.0f, 0.0f),
+                new vec2(1.0f, 0.0f),
+                new vec2(1.0f, 1.0f),
+                new vec2(0.0f, 1.0f)
+            };
+            myGameObject.Mesh.Indices = new uint[]
             {
                 0, 1, 2, 2, 3, 0,
                 4, 5, 6, 6, 7, 4
@@ -39,21 +60,18 @@ namespace BundtCake
             myGameObject.Transform.Position.x = 1;
 
             var myGameObject2 = new GameObject();
-            myGameObject2.Vertices = new List<Vertex>
-            {
-                new Vertex{pos = new vec3(-0.5f, -0.5f, 0.0f), color = new vec3(1.0f, 0.3f, 0.0f), texCoord = new vec2(0.0f, 0.0f)},
-                new Vertex{pos = new vec3(0.5f, -0.5f, 0.0f),  color = new vec3(0.9f, 0.7f, 0.6f), texCoord = new vec2(1.0f, 0.0f)},
-                new Vertex{pos = new vec3(0.5f, 0.5f, 0.0f),   color = new vec3(0.7f, 0.0f, 1.0f), texCoord = new vec2(1.0f, 1.0f)}
-            };
-            myGameObject2.Indices = new List<UInt32>
-            {
-                0, 1, 2
-            };
-            myGameObject2.Transform.Position.x = -1;
+            myGameObject2.Mesh = Primitives.CreateCube8();
+            myGameObject2.Transform.Scale *= .5f;
+
+            var myGameObject3 = new GameObject();
+            myGameObject3.Mesh = Primitives.CreateCube36();
+            myGameObject3.Transform.Scale *= .6f;
+            myGameObject3.Transform.Position.x -= 1f;
 
             var gameObjects = new List<GameObject>();
             gameObjects.Add(myGameObject);
             gameObjects.Add(myGameObject2);
+            gameObjects.Add(myGameObject3);
 
             DoFoo(100, 100, gameObjects);
 

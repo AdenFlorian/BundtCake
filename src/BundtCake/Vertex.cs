@@ -9,9 +9,16 @@ namespace BundtCake
     //[StructLayout(LayoutKind.Sequential)]
     struct Vertex
     {
-        public vec3 pos;
-        public vec3 color;
-        public vec2 texCoord;
+        public vec3 Position;
+        public vec3 Color;
+        public vec2 TexCoord;
+
+        public Vertex(vec3 pos, vec3 color, vec2 texCoord)
+        {
+            Position = pos;
+            Color = color;
+            TexCoord = texCoord;
+        }
 
         public static VertexInputBindingDescription GetBindingDescription()
         {
@@ -67,14 +74,14 @@ namespace BundtCake
         {
             var byteList = new List<byte>();
 
-            foo(byteList, pos.x);
-            foo(byteList, pos.y);
-            foo(byteList, pos.z);
-            foo(byteList, color.x);
-            foo(byteList, color.y);
-            foo(byteList, color.z);
-            foo(byteList, texCoord.x);
-            foo(byteList, texCoord.y);
+            foo(byteList, Position.x);
+            foo(byteList, Position.y);
+            foo(byteList, Position.z);
+            foo(byteList, Color.x);
+            foo(byteList, Color.y);
+            foo(byteList, Color.z);
+            foo(byteList, TexCoord.x);
+            foo(byteList, TexCoord.y);
 
             return byteList;
         }
