@@ -38,22 +38,10 @@ namespace BundtCake
             {
                 var sdlEvent = SdlWrapper.PollEvent();
 
-                if (sdlEvent.type == SDL_EventType.SDL_QUIT)
-                {
-                    break;
-                }
-                if (sdlEvent.type == SDL_EventType.SDL_WINDOWEVENT && sdlEvent.window.windowID == _window.Id)
-                {
-                    if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
-                    {
-                        break;
-                    }
-                    if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
-                    {
-                        _vulkan.OnWindowResized();
-                        continue;
-                    }
-                }
+                var eventResult = HandleSdlEvent(sdlEvent);
+
+                if (eventResult == LoopDo.Continue) continue;
+                if (eventResult == LoopDo.Break) break;
 
                 deltaTime = (float)(DateTime.Now - lastFrameTime).TotalSeconds;
                 lastFrameTime = DateTime.Now;
@@ -65,6 +53,34 @@ namespace BundtCake
 
             _vulkan.Dispose();
             _window.Dispose();
+        }
+
+        LoopDo HandleSdlEvent(SDL_Event sdlEvent)
+        {
+            if (sdlEvent.type == SDL_EventType.SDL_QUIT)
+            {
+                return LoopDo.Break;
+            }
+            if (sdlEvent.type == SDL_EventType.SDL_WINDOWEVENT && sdlEvent.window.windowID == _window.Id)
+            {
+                if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
+                {
+                    return LoopDo.Break;
+                }
+                if (sdlEvent.window.windowEvent == SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                {
+                    _vulkan.OnWindowResized();
+                    return LoopDo.Continue;
+                }
+            }
+            return LoopDo.Nothing;
+        }
+
+        enum LoopDo
+        {
+            Nothing,
+            Continue,
+            Break
         }
     }
 }
