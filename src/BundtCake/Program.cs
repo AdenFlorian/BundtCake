@@ -31,7 +31,10 @@ namespace BundtCake
                 gameObjects.Add(myGameObject);
             }
 
-            engine.Initialize(gameObjects, "i am bundt", 100, 100, 1920, 1080);
+            var mainCamera = new Camera();
+            mainCamera.Transform.Position = new vec3(8, 5, 5);
+
+            engine.Initialize(gameObjects, mainCamera, "i am bundt", 100, 100, 1920, 1080);
 
             engine.JustBeforeDraw += (deltaTime) => {
                 for (int i = 0; i < gameObjects.Count; i++)
