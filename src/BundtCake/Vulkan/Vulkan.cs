@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BundtCommon;
-using GlmNet;
 using Newtonsoft.Json;
 using Vulkan;
 using Vulkan.Windows;
@@ -1438,30 +1437,32 @@ namespace BundtCake
 
             var ubo = new UniformBufferObject();
 
-            ubo.Model = glm.translate(new mat4(1f), gameObject.Transform.Position);
+            var translation = Matrix4x4.CreateTranslation(gameObject.Transform.Position);
 
-            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
-            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
-            ubo.Model = glm.rotate(ubo.Model, glm.radians(gameObject.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
+            var rotation = Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.X));
+            rotation *= Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.Y));
+            rotation *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.Z));
 
-            ubo.Model = glm.scale(ubo.Model, gameObject.Transform.Scale);
+            var scale = Matrix4x4.CreateScale(gameObject.Transform.Scale);
 
-            var forwardVector4 = new vec4(0, 0, 1, 1);
-            var forwardMat = glm.rotate(new mat4(1), glm.radians(_mainCamera.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
-            forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
-            forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
-            forwardVector4 = forwardMat * forwardVector4;
-            var forwardVector3 = new vec3(forwardVector4.x, forwardVector4.y, forwardVector4.z);
+            ubo.Model = scale * rotation * translation;
 
-            var upVector4 = new vec4(0, 1, 0, 1);
-            upVector4 = forwardMat * upVector4;
-            var upVector3 = new vec3(upVector4.x, upVector4.y, upVector4.z);
+            var forwardVector = new Vector3(0, 0, 1);
 
-            ubo.View = glm.lookAt(_mainCamera.Transform.Position, _mainCamera.Transform.Position + forwardVector3, upVector3);
+            var forwardMat = Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.Y));
+            forwardMat *= Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.X));
+            forwardMat *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.Z));
 
-            ubo.Projection = glm.perspective(glm.radians(_mainCamera.VerticalFieldOfView), _swapChainExtent.Width / (float)_swapChainExtent.Height, _mainCamera.NearClippingPlane, _mainCamera.FarClippingPlane);
+            forwardVector = Vector3.Transform(forwardVector, forwardMat);
 
-            ubo.Projection[1,1] *= -1;
+            var upVector = new Vector3(0, 1, 0);
+            upVector = Vector3.Transform(upVector, forwardMat);
+
+            ubo.View = Matrix4x4.CreateLookAt(_mainCamera.Transform.Position, _mainCamera.Transform.Position + forwardVector, upVector);
+
+            ubo.Projection = Matrix4x4.CreatePerspectiveFieldOfView(BundtMaths.DegressToRadians(_mainCamera.VerticalFieldOfView), _swapChainExtent.Width / (float)_swapChainExtent.Height, _mainCamera.NearClippingPlane, _mainCamera.FarClippingPlane);
+
+            ubo.Projection.M22 *= -1;
 
             CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemories[gameObject.Id], 0, ubo.GetBytes().ToArray().Length, 0);
         }

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using GlmNet;
+using System.Numerics;
 
 namespace BundtCake
 {
     class Mesh
     {
-        public vec3[] VertexPositions;
-        public vec3[] Colors;
-        public vec2[] TexCoords;
+        public Vector3[] VertexPositions;
+        public Vector3[] Colors;
+        public Vector2[] TexCoords;
         public uint[] Indices;
         public List<Vertex> Vertices
         {

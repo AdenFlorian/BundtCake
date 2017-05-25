@@ -1,11 +1,11 @@
-using GlmNet;
+using System.Numerics;
 
 namespace BundtCake
 {
     public class Transform
     {
-        public vec3 Position = new vec3();
-        public vec3 Rotation = new vec3();
-        public vec3 Scale = new vec3(1f, 1f, 1f);
+        public Vector3 Position = new Vector3();
+        public Vector3 Rotation = new Vector3();
+        public Vector3 Scale = new Vector3(1f, 1f, 1f);
     }
 }

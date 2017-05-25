@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using GlmNet;
 using static SDL2.SDL;
 
 namespace BundtCake

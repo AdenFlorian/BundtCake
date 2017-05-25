@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using BundtCommon;
-using GlmNet;
 using Microsoft.Extensions.Logging;
 using SDL2;
 
@@ -24,22 +24,23 @@ namespace BundtCake
 
             var floor = new GameObject();
             floor.Mesh = Primitives.CreateCube8();
-            floor.Transform.Position.y = -20;
+            floor.Transform.Position.Y = -20;
             floor.Transform.Scale *= 15;
-            gameObjects.Add(floor);
+            //gameObjects.Add(floor);
 
             for (int i = 0; i < 100; i++)
             {
                 var myGameObject = new GameObject();
                 myGameObject.Mesh = Primitives.CreateCube36();
-                myGameObject.Transform.Position.x -= i * 3;
-                myGameObject.Transform.Position.z -= 3;
+                myGameObject.Transform.Position.X -= i * 3;
+                myGameObject.Transform.Position.Z -= 3;
+                //myGameObject.Transform.Scale *= 3;
                 gameObjects.Add(myGameObject);
                 
             }
 
             var mainCamera = new Camera();
-            mainCamera.Transform.Position = new vec3(0, 0, -25);
+            mainCamera.Transform.Position = new Vector3(0, 0, -200);
 
             engine.Initialize(gameObjects, mainCamera, "i am bundt", 100, 100, 1920, 1080);
 
@@ -48,7 +49,7 @@ namespace BundtCake
                 var moveSpeed = 5f;
                 for (int i = 0; i < gameObjects.Count; i++)
                 {
-                    gameObjects[i].Transform.Rotation.z += 10 * i * deltaTime;
+                    gameObjects[i].Transform.Rotation.Z += 10 * i * deltaTime;
                     if (Input.W)
                     {
                         //gameObjects[i].Transform.Rotation.y += 100 * deltaTime;
@@ -60,27 +61,24 @@ namespace BundtCake
                 }
                 if (Input.A)
                 {
-                    mainCamera.Transform.Position.x += moveSpeed * deltaTime;
-                    mainCamera.Transform.Rotation.z += moveSpeed * deltaTime;
+                    mainCamera.Transform.Position.X += moveSpeed * deltaTime;
+                    //mainCamera.Transform.Rotation.Z += moveSpeed * deltaTime;
                 }
                 if (Input.D)
                 {
-                    mainCamera.Transform.Position.x -= moveSpeed * deltaTime;
-                    mainCamera.Transform.Rotation.z -= moveSpeed * deltaTime;
+                    mainCamera.Transform.Position.X -= moveSpeed * deltaTime;
+                    //mainCamera.Transform.Rotation.Z -= moveSpeed * deltaTime;
                 }
                 if (Input.W)
                 {
-                    mainCamera.Transform.Position.z += moveSpeed * deltaTime;
+                    mainCamera.Transform.Position.Z += moveSpeed * deltaTime;
                 }
                 if (Input.S)
                 {
-                    mainCamera.Transform.Position.z -= moveSpeed * deltaTime;
+                    mainCamera.Transform.Position.Z -= moveSpeed * deltaTime;
                 }
-                //mainCamera.Transform.Position.x += engine.MouseX / 100f;
-                //mainCamera.Transform.Position.y -= engine.MouseY / 100f;
-                //mainCamera.Transform.Rotation.x += engine.MouseX / 1f;
-                //mainCamera.Transform.Rotation.x -= Input.MouseY * 0.1f;
-                //mainCamera.Transform.Rotation.y += Input.MouseX * 0.1f;
+                mainCamera.Transform.Rotation.X -= Input.MouseY * 0.1f;
+                mainCamera.Transform.Rotation.Y += Input.MouseX * 0.1f;
             };
 
             engine.Start();

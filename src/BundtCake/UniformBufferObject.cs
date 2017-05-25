@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using GlmNet;
+using System.Numerics;
 
 namespace BundtCake
 {
     //[StructLayout(LayoutKind.Sequential)]
     public struct UniformBufferObject
     {
-        public mat4 Model;
-        public mat4 View;
-        public mat4 Projection;
+        public Matrix4x4 Model;
+        public Matrix4x4 View;
+        public Matrix4x4 Projection;
 
         public List<byte> GetBytes()
         {
@@ -30,27 +30,27 @@ namespace BundtCake
         //     }
         // }
 
-        void AppendMat4BytesToBytes(List<byte> bytes,  mat4 mat)
+        void AppendMat4BytesToBytes(List<byte> bytes,  Matrix4x4 mat)
         {
-            AppendFloatBytesToBytes(bytes, mat[0, 0]);
-            AppendFloatBytesToBytes(bytes, mat[0, 1]);
-            AppendFloatBytesToBytes(bytes, mat[0, 2]);
-            AppendFloatBytesToBytes(bytes, mat[0, 3]);
+            AppendFloatBytesToBytes(bytes, mat.M11);
+            AppendFloatBytesToBytes(bytes, mat.M12);
+            AppendFloatBytesToBytes(bytes, mat.M13);
+            AppendFloatBytesToBytes(bytes, mat.M14);
 
-            AppendFloatBytesToBytes(bytes, mat[1, 0]);
-            AppendFloatBytesToBytes(bytes, mat[1, 1]);
-            AppendFloatBytesToBytes(bytes, mat[1, 2]);
-            AppendFloatBytesToBytes(bytes, mat[1, 3]);
+            AppendFloatBytesToBytes(bytes, mat.M21);
+            AppendFloatBytesToBytes(bytes, mat.M22);
+            AppendFloatBytesToBytes(bytes, mat.M23);
+            AppendFloatBytesToBytes(bytes, mat.M24);
 
-            AppendFloatBytesToBytes(bytes, mat[2, 0]);
-            AppendFloatBytesToBytes(bytes, mat[2, 1]);
-            AppendFloatBytesToBytes(bytes, mat[2, 2]);
-            AppendFloatBytesToBytes(bytes, mat[2, 3]);
-            
-            AppendFloatBytesToBytes(bytes, mat[3, 0]);
-            AppendFloatBytesToBytes(bytes, mat[3, 1]);
-            AppendFloatBytesToBytes(bytes, mat[3, 2]);
-            AppendFloatBytesToBytes(bytes, mat[3, 3]);
+            AppendFloatBytesToBytes(bytes, mat.M31);
+            AppendFloatBytesToBytes(bytes, mat.M32);
+            AppendFloatBytesToBytes(bytes, mat.M33);
+            AppendFloatBytesToBytes(bytes, mat.M34);
+
+            AppendFloatBytesToBytes(bytes, mat.M41);
+            AppendFloatBytesToBytes(bytes, mat.M42);
+            AppendFloatBytesToBytes(bytes, mat.M43);
+            AppendFloatBytesToBytes(bytes, mat.M44);
         }
 
         void AppendFloatBytesToBytes(List<byte> bytes, float appendFloat)

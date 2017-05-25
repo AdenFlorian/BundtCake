@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
-using GlmNet;
 using Vulkan;
 
 namespace BundtCake
@@ -9,11 +9,11 @@ namespace BundtCake
     //[StructLayout(LayoutKind.Sequential)]
     struct Vertex
     {
-        public vec3 Position;
-        public vec3 Color;
-        public vec2 TexCoord;
+        public Vector3 Position;
+        public Vector3 Color;
+        public Vector2 TexCoord;
 
-        public Vertex(vec3 pos, vec3 color, vec2 texCoord)
+        public Vertex(Vector3 pos, Vector3 color, Vector2 texCoord)
         {
             Position = pos;
             Color = color;
@@ -25,7 +25,7 @@ namespace BundtCake
             var bindingDescription = new VertexInputBindingDescription
             {
                 Binding = 0,
-                // vec3 + vec3 + vec2 = 8
+                // Vector3 + Vector3 + Vector2 = 8
                 Stride = 8 * sizeof(float),
                 InputRate = VertexInputRate.Vertex
             };
@@ -74,14 +74,14 @@ namespace BundtCake
         {
             var byteList = new List<byte>();
 
-            foo(byteList, Position.x);
-            foo(byteList, Position.y);
-            foo(byteList, Position.z);
-            foo(byteList, Color.x);
-            foo(byteList, Color.y);
-            foo(byteList, Color.z);
-            foo(byteList, TexCoord.x);
-            foo(byteList, TexCoord.y);
+            foo(byteList, Position.X);
+            foo(byteList, Position.Y);
+            foo(byteList, Position.Z);
+            foo(byteList, Color.X);
+            foo(byteList, Color.Y);
+            foo(byteList, Color.Z);
+            foo(byteList, TexCoord.X);
+            foo(byteList, TexCoord.Y);
 
             return byteList;
         }

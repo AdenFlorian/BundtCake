@@ -1,4 +1,4 @@
-using GlmNet;
+using System.Numerics;
 
 namespace BundtCake
 {
@@ -8,26 +8,26 @@ namespace BundtCake
         {
             var cubeMesh = new Mesh();
 
-            cubeMesh.VertexPositions = new vec3[]
+            cubeMesh.VertexPositions = new Vector3[]
             {
                 // front
                 // bottom left
-                new vec3(-1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
                 // bottom right
-                new vec3( 1.0f, -1.0f,  1.0f),
+                new Vector3( 1.0f, -1.0f,  1.0f),
                 // top right
-                new vec3( 1.0f,  1.0f,  1.0f),
+                new Vector3( 1.0f,  1.0f,  1.0f),
                 // top left
-                new vec3(-1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
                 // back
                 // bottom left
-                new vec3(-1.0f, -1.0f,  -1.0f),
+                new Vector3(-1.0f, -1.0f,  -1.0f),
                 // bottom right
-                new vec3( 1.0f, -1.0f,  -1.0f),
+                new Vector3( 1.0f, -1.0f,  -1.0f),
                 // top right
-                new vec3( 1.0f,  1.0f,  -1.0f),
+                new Vector3( 1.0f,  1.0f,  -1.0f),
                 // top left
-                new vec3(-1.0f,  1.0f,  -1.0f),
+                new Vector3(-1.0f,  1.0f,  -1.0f),
             };
 
             cubeMesh.Indices = new uint[]
@@ -52,32 +52,32 @@ namespace BundtCake
                 6, 7, 3
             };
 
-            cubeMesh.Colors = new vec3[]
+            cubeMesh.Colors = new Vector3[]
             {
                 // front colors
-                new vec3(1.0f, 0.0f, 0.0f),
-                new vec3(0.0f, 1.0f, 0.0f),
-                new vec3(0.0f, 0.0f, 1.0f),
-                new vec3(1.0f, 1.0f, 1.0f),
+                new Vector3(1.0f, 0.0f, 0.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, 0.0f, 1.0f),
+                new Vector3(1.0f, 1.0f, 1.0f),
                 // back colors
-                new vec3(1.0f, 0.0f, 0.0f),
-                new vec3(0.0f, 1.0f, 0.0f),
-                new vec3(0.0f, 0.0f, 1.0f),
-                new vec3(1.0f, 1.0f, 1.0f)
+                new Vector3(1.0f, 0.0f, 0.0f),
+                new Vector3(0.0f, 1.0f, 0.0f),
+                new Vector3(0.0f, 0.0f, 1.0f),
+                new Vector3(1.0f, 1.0f, 1.0f)
             };
 
-            cubeMesh.TexCoords = new vec2[]
+            cubeMesh.TexCoords = new Vector2[]
             {
                 // front tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // back tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
             };
 
             return cubeMesh;
@@ -87,43 +87,43 @@ namespace BundtCake
         {
             var cubeMesh = new Mesh();
 
-            cubeMesh.VertexPositions = new vec3[]
+            cubeMesh.VertexPositions = new Vector3[]
             {
                 // Front face
-                new vec3(-1.0f, -1.0f,  1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
 
                 // Back face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(-1.0f,  1.0f, -1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
-                new vec3(1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
             
                 // Top face
-                new vec3(-1.0f,  1.0f, -1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
             
                 // Bottom face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(1.0f, -1.0f, -1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
-                new vec3(-1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
 
                 // Right face
-                new vec3(1.0f, -1.0f, -1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
             
                 // Left face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(-1.0f, -1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f, -1.0f)
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f)
             };
 
             cubeMesh.Indices = new uint[]
@@ -136,77 +136,77 @@ namespace BundtCake
                 20, 21, 22,     20, 22, 23    // left
             };
 
-            cubeMesh.Colors = new vec3[]
+            cubeMesh.Colors = new Vector3[]
             {
                 // Front face
-                new vec3(-1.0f, -1.0f,  1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
 
                 // Back face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(-1.0f,  1.0f, -1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
-                new vec3(1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
             
                 // Top face
-                new vec3(-1.0f,  1.0f, -1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
             
                 // Bottom face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(1.0f, -1.0f, -1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
-                new vec3(-1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
 
                 // Right face
-                new vec3(1.0f, -1.0f, -1.0f),
-                new vec3(1.0f,  1.0f, -1.0f),
-                new vec3(1.0f,  1.0f,  1.0f),
-                new vec3(1.0f, -1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f, -1.0f),
+                new Vector3(1.0f,  1.0f,  1.0f),
+                new Vector3(1.0f, -1.0f,  1.0f),
             
                 // Left face
-                new vec3(-1.0f, -1.0f, -1.0f),
-                new vec3(-1.0f, -1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f,  1.0f),
-                new vec3(-1.0f,  1.0f, -1.0f)
+                new Vector3(-1.0f, -1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f,  1.0f),
+                new Vector3(-1.0f,  1.0f, -1.0f)
             };
 
-            cubeMesh.TexCoords = new vec2[]
+            cubeMesh.TexCoords = new Vector2[]
             {
                 // front tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // back tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // front tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // back tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // front tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
                 // back tex
-                new vec2(0.0f, 0.0f),
-                new vec2(1.0f, 0.0f),
-                new vec2(1.0f, 1.0f),
-                new vec2(0.0f, 1.0f),
+                new Vector2(0.0f, 0.0f),
+                new Vector2(1.0f, 0.0f),
+                new Vector2(1.0f, 1.0f),
+                new Vector2(0.0f, 1.0f),
             };
 
             return cubeMesh;
