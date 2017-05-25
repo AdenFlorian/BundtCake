@@ -14,7 +14,30 @@ namespace BundtCake
         public static bool D;
         public static bool LeftShift;
 
+        public static int MouseX;
+        public static int MouseY;
+        static int _lastMouseX;
+        static int _lastMouseY;
+
         static MyLogger _logger = new MyLogger(nameof(Input));
+
+        internal static void Start()
+        {
+            int mouseX, mouseY;
+            SDL_GetGlobalMouseState(out mouseX, out mouseY);
+            _lastMouseX = mouseX;
+            _lastMouseY = mouseY;
+        }
+
+        internal static void Update()
+        {
+            int mouseX, mouseY;
+            SDL_GetGlobalMouseState(out mouseX, out mouseY);
+            MouseX = _lastMouseX - mouseX;
+            _lastMouseX = mouseX;
+            MouseY = _lastMouseY - mouseY;
+            _lastMouseY = mouseY;
+        }
 
         internal static void Clear()
         {

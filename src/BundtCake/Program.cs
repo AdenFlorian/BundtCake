@@ -77,7 +77,8 @@ namespace BundtCake
                 //mainCamera.Transform.Position.x += engine.MouseX / 100f;
                 //mainCamera.Transform.Position.y -= engine.MouseY / 100f;
                 //mainCamera.Transform.Rotation.x += engine.MouseX / 1f;
-                mainCamera.Transform.Rotation.y += engine.MouseX / 0.1f;
+                mainCamera.Transform.Rotation.x -= Input.MouseY * 0.1f;
+                mainCamera.Transform.Rotation.y += Input.MouseX * 0.1f;
             };
 
             engine.Start();

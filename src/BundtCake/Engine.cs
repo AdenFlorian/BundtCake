@@ -8,11 +8,6 @@ namespace BundtCake
     class Engine
     {
         public Action<float> JustBeforeDraw;
-        public float MouseX { get; private set; }
-        public float MouseY { get; private set; }
-
-        float lastMouseX;
-        float lastMouseY;
 
         Vulkan _vulkan;
         Window _window;
@@ -38,11 +33,7 @@ namespace BundtCake
 
             // If doing multiple windows in different threads
             // should poll events from main thread and pass them out from there
-
-            int mouseX, mouseY;
-            SDL_GetMouseState(out mouseX, out mouseY);
-            lastMouseX = mouseX;
-            lastMouseY = mouseY;
+            Input.Start();
 
             while (true)
             {
@@ -56,12 +47,7 @@ namespace BundtCake
                 deltaTime = (float)(DateTime.Now - lastFrameTime).TotalSeconds;
                 lastFrameTime = DateTime.Now;
 
-                SDL_GetMouseState(out mouseX, out mouseY);
-                MouseX = lastMouseX - mouseX;
-                lastMouseX = mouseX;
-                MouseY = lastMouseY - mouseY;
-                lastMouseY = mouseY;
-
+                Input.Update();
                 JustBeforeDraw?.Invoke(deltaTime);
                 Input.Clear();
 
