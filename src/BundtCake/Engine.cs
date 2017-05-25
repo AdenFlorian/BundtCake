@@ -8,6 +8,11 @@ namespace BundtCake
     class Engine
     {
         public Action<float> JustBeforeDraw;
+        public float MouseX { get; private set; }
+        public float MouseY { get; private set; }
+
+        float lastMouseX;
+        float lastMouseY;
 
         Vulkan _vulkan;
         Window _window;
@@ -34,6 +39,11 @@ namespace BundtCake
             // If doing multiple windows in different threads
             // should poll events from main thread and pass them out from there
 
+            int mouseX, mouseY;
+            SDL_GetMouseState(out mouseX, out mouseY);
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+
             while (true)
             {
                 var sdlEvent = SdlWrapper.PollEvent();
@@ -46,7 +56,14 @@ namespace BundtCake
                 deltaTime = (float)(DateTime.Now - lastFrameTime).TotalSeconds;
                 lastFrameTime = DateTime.Now;
 
+                SDL_GetMouseState(out mouseX, out mouseY);
+                MouseX = lastMouseX - mouseX;
+                lastMouseX = mouseX;
+                MouseY = lastMouseY - mouseY;
+                lastMouseY = mouseY;
+
                 JustBeforeDraw?.Invoke(deltaTime);
+                Input.Clear();
 
                 _vulkan.DrawFrame();
             }
@@ -61,6 +78,13 @@ namespace BundtCake
             {
                 case SDL_EventType.SDL_QUIT: return LoopDo.Break;
                 case SDL_EventType.SDL_WINDOWEVENT: return HandleWindowEvent(sdlEvent.window);
+                case SDL_EventType.SDL_MOUSEMOTION: return HandleMouseMotionEvent(sdlEvent.motion);
+                case SDL_EventType.SDL_KEYDOWN:
+                    Input.SetKeyDown(sdlEvent.key.keysym.sym);
+                    return LoopDo.Continue;
+                case SDL_EventType.SDL_KEYUP:
+                    Input.SetKeyUp(sdlEvent.key.keysym.sym);
+                    return LoopDo.Continue;
                 default: break;
             }
             return LoopDo.Nothing;
@@ -80,6 +104,13 @@ namespace BundtCake
                     return LoopDo.Continue;
                 }
             }
+            return LoopDo.Nothing;
+        }
+
+        LoopDo HandleMouseMotionEvent(SDL_MouseMotionEvent mouseMotionEvent)
+        {
+            //MouseX = lastMouseX - mouseMotionEvent.x;
+            //lastMouseX = mouseMotionEvent.x;
             return LoopDo.Nothing;
         }
 
