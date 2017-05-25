@@ -1449,7 +1449,7 @@ namespace BundtCake
             var forwardVector4 = new vec4(0, 0, 1, 1);
             var forwardMat = glm.rotate(new mat4(1), glm.radians(_mainCamera.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
             forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
-            //forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
+            forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
             forwardVector4 = forwardMat * forwardVector4;
             var forwardVector3 = new vec3(forwardVector4.x, forwardVector4.y, forwardVector4.z);
 
@@ -1457,18 +1457,7 @@ namespace BundtCake
             upVector4 = forwardMat * upVector4;
             var upVector3 = new vec3(upVector4.x, upVector4.y, upVector4.z);
 
-            //var upVector4 = new vec4(0, 0, 1, 1);
-            // var forwardMat = glm.rotate(new mat4(1), glm.radians(_mainCamera.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
-            // forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
-            // forwardMat = glm.rotate(forwardMat, glm.radians(_mainCamera.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
-            // forwardVector4 = forwardMat * forwardVector4;
-            // var forwardVector3 = new vec3(forwardVector4.x, forwardVector4.y, forwardVector4.z);
-
             ubo.View = glm.lookAt(_mainCamera.Transform.Position, _mainCamera.Transform.Position + forwardVector3, upVector3);
-            // ubo.View = glm.translate(new mat4(1f), _mainCamera.Transform.Position);
-            // ubo.View = glm.rotate(ubo.View, glm.radians(_mainCamera.Transform.Rotation.x), new vec3(1.0f, 0.0f, 0.0f));
-            // ubo.View = glm.rotate(ubo.View, glm.radians(_mainCamera.Transform.Rotation.y), new vec3(0.0f, 1.0f, 0.0f));
-            // ubo.View = glm.rotate(ubo.View, glm.radians(_mainCamera.Transform.Rotation.z), new vec3(0.0f, 0.0f, 1.0f));
 
             ubo.Projection = glm.perspective(glm.radians(_mainCamera.VerticalFieldOfView), _swapChainExtent.Width / (float)_swapChainExtent.Height, _mainCamera.NearClippingPlane, _mainCamera.FarClippingPlane);
 
