@@ -1007,7 +1007,7 @@ namespace BundtCake
                 pixelsBytes.Add(pixel.A);
             }
 
-            CopyToBufferMemory(pixelsBytes.ToArray(), stagingBufferMemory, 0, imageSize, 0);
+            _device.CopyToBufferMemory(pixelsBytes.ToArray(), stagingBufferMemory, 0, imageSize, 0);
 
             CreateImage((uint)imagedata.Width, (uint)imagedata.Height, Format.R8G8B8A8Unorm, ImageTiling.Optimal, ImageUsageFlags.TransferDst | ImageUsageFlags.Sampled, MemoryPropertyFlags.DeviceLocal, out _textureImage, out _textureImageMemory);
 
@@ -1018,15 +1018,6 @@ namespace BundtCake
             imagedata.Dispose();
             _device.DestroyBuffer(stagingBuffer);
             _device.FreeMemory(stagingBufferMemory);
-        }
-
-        void CopyToBufferMemory(byte[] source, DeviceMemory destinationBufferMemory, DeviceSize offset, DeviceSize size, uint mapFlags)
-        {
-            var mappedMemoryPointer = _device.MapMemory(destinationBufferMemory, offset, size, mapFlags);
-
-            Marshal.Copy(source, 0, mappedMemoryPointer, (int)(uint)size);
-
-            _device.UnmapMemory(destinationBufferMemory);
         }
 
         void CreateTextureImageView()
@@ -1193,7 +1184,7 @@ namespace BundtCake
                 DeviceMemory stagingBufferMemory;
                 CreateBuffer(bufferSize, BufferUsageFlags.TransferSrc, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out stagingBuffer, out stagingBufferMemory);
 
-                CopyToBufferMemory(Vertex.VertexArrayToByteArray(gameObject.Mesh.Vertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
+                _device.CopyToBufferMemory(Vertex.VertexArrayToByteArray(gameObject.Mesh.Vertices).ToArray(), stagingBufferMemory, 0, bufferSize, 0);
 
                 VkBuffer vertexBuffer;
                 DeviceMemory vertexBufferMemory;
@@ -1230,7 +1221,7 @@ namespace BundtCake
                     }
                 }
 
-                CopyToBufferMemory(indicesBytes.ToArray(), stagingBufferMemory, 0, bufferSize, 0);
+                _device.CopyToBufferMemory(indicesBytes.ToArray(), stagingBufferMemory, 0, bufferSize, 0);
 
                 VkBuffer indexBuffer;
                 DeviceMemory indexBufferMemory;
@@ -1430,11 +1421,8 @@ namespace BundtCake
 
         DateTime _startTime = DateTime.Now;
 
-        public void UpdateUniformBuffer(GameObject gameObject)
+        public void UpdateUniformBuffer(GameObject gameObject, Camera mainCamera, DeviceMemory uniformBufferMemory, uint screenWidth, uint screenHeight)
         {
-            var currentTime = DateTime.Now;
-            var elapsedTime = currentTime - _startTime;
-
             var ubo = new UniformBufferObject();
 
             var translation = Matrix4x4.CreateTranslation(gameObject.Transform.Position);
@@ -1449,22 +1437,22 @@ namespace BundtCake
 
             var forwardVector = new Vector3(0, 0, 1);
 
-            var forwardMat = Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.Y));
-            forwardMat *= Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.X));
-            forwardMat *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(_mainCamera.Transform.Rotation.Z));
+            var forwardMat = Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.Y));
+            forwardMat *= Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.X));
+            forwardMat *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.Z));
 
             forwardVector = Vector3.Transform(forwardVector, forwardMat);
 
             var upVector = new Vector3(0, 1, 0);
             upVector = Vector3.Transform(upVector, forwardMat);
 
-            ubo.View = Matrix4x4.CreateLookAt(_mainCamera.Transform.Position, _mainCamera.Transform.Position + forwardVector, upVector);
+            ubo.View = Matrix4x4.CreateLookAt(mainCamera.Transform.Position, mainCamera.Transform.Position + forwardVector, upVector);
 
-            ubo.Projection = Matrix4x4.CreatePerspectiveFieldOfView(BundtMaths.DegressToRadians(_mainCamera.VerticalFieldOfView), _swapChainExtent.Width / (float)_swapChainExtent.Height, _mainCamera.NearClippingPlane, _mainCamera.FarClippingPlane);
+            ubo.Projection = Matrix4x4.CreatePerspectiveFieldOfView(BundtMaths.DegressToRadians(mainCamera.VerticalFieldOfView), screenWidth / (float)screenHeight, mainCamera.NearClippingPlane, mainCamera.FarClippingPlane);
 
             ubo.Projection.M22 *= -1;
 
-            CopyToBufferMemory(ubo.GetBytes().ToArray(), _uniformBufferMemories[gameObject.Id], 0, ubo.GetBytes().ToArray().Length, 0);
+            _device.CopyToBufferMemory(ubo.GetBytes().ToArray(), uniformBufferMemory, 0, ubo.GetBytes().ToArray().Length, 0);
         }
 
         public void OnWindowResized()
@@ -1480,7 +1468,7 @@ namespace BundtCake
         {
             foreach (var gameObject in _gameObjects.Values)
             {
-                UpdateUniformBuffer(gameObject);
+                UpdateUniformBuffer(gameObject, _mainCamera, _uniformBufferMemories[gameObject.Id], _swapChainExtent.Width, _swapChainExtent.Height);
             }
 
             uint imageIndex;
