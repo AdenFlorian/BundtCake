@@ -59,7 +59,7 @@ namespace BundtCake
         Dictionary<int, DeviceMemory> _uniformBufferMemories = new Dictionary<int, DeviceMemory>();
         DescriptorPool _descriptorPool;
         Dictionary<int, DescriptorSet> _descriptorSets = new Dictionary<int, DescriptorSet>();
-        CommandBuffer[] _commandBuffers;
+        CommandBuffer[] _drawCommandBuffers;
         Semaphore _imageAvailableSemaphore;
         Semaphore _renderFinishedSemaphore;
         Image[] _swapChainImages;
@@ -1365,16 +1365,16 @@ namespace BundtCake
                 CommandBufferCount = (uint)_swapChainFramebuffers.Count
             };
 
-            _commandBuffers = _device.AllocateCommandBuffers(allocInfo);
+            _drawCommandBuffers = _device.AllocateCommandBuffers(allocInfo);
 
-            for (var i = 0; i < _commandBuffers.Length; i++)
+            for (var i = 0; i < _drawCommandBuffers.Length; i++)
             {
                 var beginInfo = new CommandBufferBeginInfo
                 {
                     Flags = CommandBufferUsageFlags.SimultaneousUse
                 };
 
-                _commandBuffers[i].Begin(beginInfo);
+                _drawCommandBuffers[i].Begin(beginInfo);
 
                 var clearValues = new ClearValue[] {new ClearValue(), new ClearValue()};
                 clearValues[0].Color = new ClearColorValue(new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
@@ -1392,22 +1392,22 @@ namespace BundtCake
                     ClearValues = clearValues
                 };
 
-                _commandBuffers[i].CmdBeginRenderPass(renderPassInfo, SubpassContents.Inline);
+                _drawCommandBuffers[i].CmdBeginRenderPass(renderPassInfo, SubpassContents.Inline);
 
-                _commandBuffers[i].CmdBindPipeline(PipelineBindPoint.Graphics, _graphicsPipeline);
+                _drawCommandBuffers[i].CmdBindPipeline(PipelineBindPoint.Graphics, _graphicsPipeline);
 
                 foreach (var gameObject in _gameObjects.Values)
                 {
-                    _commandBuffers[i].CmdBindVertexBuffers(0, new VkBuffer[] { _vertexBuffers[gameObject.Id] }, new DeviceSize[] { 0 });
-                    _commandBuffers[i].CmdBindIndexBuffer(_indexBuffers[gameObject.Id], 0, IndexType.Uint32);
+                    _drawCommandBuffers[i].CmdBindVertexBuffers(0, new VkBuffer[] { _vertexBuffers[gameObject.Id] }, new DeviceSize[] { 0 });
+                    _drawCommandBuffers[i].CmdBindIndexBuffer(_indexBuffers[gameObject.Id], 0, IndexType.Uint32);
                     // TODO Should have one descriptor set per object, each having its own uniformbuffer
-                    _commandBuffers[i].CmdBindDescriptorSets(PipelineBindPoint.Graphics, _graphicsPipelineLayout, 0, new DescriptorSet[] { _descriptorSets[gameObject.Id] }, null);
-                    _commandBuffers[i].CmdDrawIndexed((uint)gameObject.Mesh.Indices.Length, 1, 0, 0, 0);
+                    _drawCommandBuffers[i].CmdBindDescriptorSets(PipelineBindPoint.Graphics, _graphicsPipelineLayout, 0, new DescriptorSet[] { _descriptorSets[gameObject.Id] }, null);
+                    _drawCommandBuffers[i].CmdDrawIndexed((uint)gameObject.Mesh.Indices.Length, 1, 0, 0, 0);
                 }
 
-                _commandBuffers[i].CmdEndRenderPass();
+                _drawCommandBuffers[i].CmdEndRenderPass();
         
-                _commandBuffers[i].End();
+                _drawCommandBuffers[i].End();
             }
         }
 
@@ -1421,38 +1421,16 @@ namespace BundtCake
 
         DateTime _startTime = DateTime.Now;
 
-        public void UpdateUniformBuffer(GameObject gameObject, Camera mainCamera, DeviceMemory uniformBufferMemory, uint screenWidth, uint screenHeight)
+        void UpdateUniformBuffer(GameObject gameObject, Camera mainCamera, DeviceMemory uniformBufferMemory, uint screenWidth, uint screenHeight)
         {
-            var ubo = new UniformBufferObject();
+            var uniformBufferObject = new UniformBufferObject
+            {
+                Model = gameObject.Transform.CreateModelMatrix(),
+                View = mainCamera.CreateViewMatrix(),
+                Projection = mainCamera.CreateProjectionMatrix(screenWidth, screenHeight)
+            };
 
-            var translation = Matrix4x4.CreateTranslation(gameObject.Transform.Position);
-
-            var rotation = Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.X));
-            rotation *= Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.Y));
-            rotation *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(gameObject.Transform.Rotation.Z));
-
-            var scale = Matrix4x4.CreateScale(gameObject.Transform.Scale);
-
-            ubo.Model = scale * rotation * translation;
-
-            var forwardVector = new Vector3(0, 0, 1);
-
-            var forwardMat = Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.Y));
-            forwardMat *= Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.X));
-            forwardMat *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(mainCamera.Transform.Rotation.Z));
-
-            forwardVector = Vector3.Transform(forwardVector, forwardMat);
-
-            var upVector = new Vector3(0, 1, 0);
-            upVector = Vector3.Transform(upVector, forwardMat);
-
-            ubo.View = Matrix4x4.CreateLookAt(mainCamera.Transform.Position, mainCamera.Transform.Position + forwardVector, upVector);
-
-            ubo.Projection = Matrix4x4.CreatePerspectiveFieldOfView(BundtMaths.DegressToRadians(mainCamera.VerticalFieldOfView), screenWidth / (float)screenHeight, mainCamera.NearClippingPlane, mainCamera.FarClippingPlane);
-
-            ubo.Projection.M22 *= -1;
-
-            _device.CopyToBufferMemory(ubo.GetBytes().ToArray(), uniformBufferMemory, 0, ubo.GetBytes().ToArray().Length, 0);
+            _device.CopyToBufferMemory(uniformBufferObject.GetBytes().ToArray(), uniformBufferMemory, 0, uniformBufferObject.GetBytes().ToArray().Length, 0);
         }
 
         public void OnWindowResized()
@@ -1466,46 +1444,71 @@ namespace BundtCake
 
         public void DrawFrame()
         {
+            UpdateUniformBuffersForEachGameObject();
+
+            var swapChainImageIndex = TryToAcquireNextSwapChainImage();
+            if (swapChainImageIndex == uint.MaxValue) return;
+
+            var submitInfo = CreateSubmitInfo(_imageAvailableSemaphore,
+                PipelineStageFlags.ColorAttachmentOutput,
+                _drawCommandBuffers[swapChainImageIndex],
+                _renderFinishedSemaphore);
+
+            _graphicsQueue.Submit(submitInfo);
+
+            var presentInfo = CreatePresentInfo(_renderFinishedSemaphore, _swapChain, swapChainImageIndex);
+
+            TryToPresent(presentInfo);
+        }
+
+        void UpdateUniformBuffersForEachGameObject()
+        {
             foreach (var gameObject in _gameObjects.Values)
             {
                 UpdateUniformBuffer(gameObject, _mainCamera, _uniformBufferMemories[gameObject.Id], _swapChainExtent.Width, _swapChainExtent.Height);
             }
+        }
 
-            uint imageIndex;
+        uint TryToAcquireNextSwapChainImage()
+        {
             try
             {
-                imageIndex = _device.AcquireNextImageKHR(_swapChain, ulong.MaxValue, _imageAvailableSemaphore, null);
+                return _device.AcquireNextImageKHR(_swapChain, ulong.MaxValue, _imageAvailableSemaphore, null);
             }
             catch (ResultException re)
             {
                 if (re.Result.HasFlag(Result.ErrorOutOfDateKhr))
                 {
                     RecreateSwapchain();
-                    return;
+                    return uint.MaxValue;
                 }
                 throw;
             }
+        }
 
-            var signalSemaphores = new Semaphore[] { _renderFinishedSemaphore };
-
-            var submitInfo = new SubmitInfo
+        SubmitInfo CreateSubmitInfo(Semaphore waitSemaphore, PipelineStageFlags waitDstStageMask, CommandBuffer commandbuffer, Semaphore signalSemaphore)
+        {
+            return new SubmitInfo
             {
-                WaitSemaphores = new Semaphore[] { _imageAvailableSemaphore },
-                WaitDstStageMask = new PipelineStageFlags[] { PipelineStageFlags.ColorAttachmentOutput },
-                CommandBuffers = new CommandBuffer[] { _commandBuffers[imageIndex] },
-                SignalSemaphores = signalSemaphores
+                WaitSemaphores = new Semaphore[] { waitSemaphore },
+                WaitDstStageMask = new PipelineStageFlags[] { waitDstStageMask },
+                CommandBuffers = new CommandBuffer[] { commandbuffer },
+                SignalSemaphores = new Semaphore[] { signalSemaphore }
             };
+        }
 
-            _graphicsQueue.Submit(submitInfo);
-
-            var presentInfo = new PresentInfoKhr
+        PresentInfoKhr CreatePresentInfo(Semaphore waitSemaphore, SwapchainKhr swapchain, uint imageIndex)
+        {
+            return new PresentInfoKhr
             {
-                WaitSemaphores = signalSemaphores,
-                Swapchains = new SwapchainKhr[] { _swapChain },
-                ImageIndices = new uint[] { imageIndex },
-                //Results = 
+                WaitSemaphores = new Semaphore[] {waitSemaphore},
+                Swapchains = new SwapchainKhr[] {_swapChain},
+                ImageIndices = new uint[] {imageIndex}
             };
+        }
 
+        void TryToPresent(PresentInfoKhr presentInfo)
+        {
             try
             {
                 _presentQueue.PresentKHR(presentInfo);
@@ -1516,7 +1519,10 @@ namespace BundtCake
                 {
                     RecreateSwapchain();
                 }
-                throw;
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -1550,7 +1556,6 @@ namespace BundtCake
                 _device.FreeMemory(_uniformBufferMemories[index]);
             }
 
-
             foreach (var gameObject in _gameObjects.Values)
             {
                 _device.DestroyBuffer(_indexBuffers[gameObject.Id]);
@@ -1578,22 +1583,16 @@ namespace BundtCake
             _device.DestroyImage(_depthImage);
             _device.FreeMemory(_depthImageMemory);
 
-            foreach (var frameBuffer in _swapChainFramebuffers)
-            {
-                _device.DestroyFramebuffer(frameBuffer);
-            }
+            _swapChainFramebuffers.ForEach(x => _device.DestroyFramebuffer(x));
 
-            _device.FreeCommandBuffers(_commandPool, _commandBuffers);
+            _device.FreeCommandBuffers(_commandPool, _drawCommandBuffers);
 
             _device.DestroyPipeline(_graphicsPipeline);
             _device.DestroyPipelineLayout(_graphicsPipelineLayout);
 
             _device.DestroyRenderPass(_renderPass);
 
-            foreach (var swapChainImageView in _swapChainImageViews)
-            {
-                _device.DestroyImageView(swapChainImageView);
-            }
+            _swapChainImageViews.ForEach(x => _device.DestroyImageView(x));
 
             _device.DestroySwapchainKHR(_swapChain);
         }
