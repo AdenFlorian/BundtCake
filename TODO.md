@@ -7,3 +7,4 @@ TODO
 - [√] move camera with mouse
 - [ ] different textures for different objects
 - [ ] gameobject heirarchy
+- [ ] make vulkan init async

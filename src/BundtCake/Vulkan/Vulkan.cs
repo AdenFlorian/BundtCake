@@ -29,40 +29,44 @@ namespace BundtCake
         Device _device;
         Queue _graphicsQueue;
         Queue _presentQueue;
+
         Format _swapChainImageFormat;
         SwapchainKhr _swapChain;
         Extent2D _swapChainExtent;
+        Image[] _swapChainImages;
         List<ImageView> _swapChainImageViews;
+        List<Framebuffer> _swapChainFramebuffers;
+
         RenderPass _renderPass;
         DescriptorSetLayout _descriptorSetLayout;
+        DescriptorPool _descriptorPool;
+
         PipelineLayout _graphicsPipelineLayout;
         Pipeline _graphicsPipeline;
+
         CommandPool _commandPool;
         CommandPool _tempCommandPool;
+        CommandBuffer[] _drawCommandBuffers;
+
         Image _textureImage;
         DeviceMemory _textureImageMemory;
         ImageView _textureImageView;
         Sampler _textureSampler;
+
         ImageView _depthImageView;
         Image _depthImage;
         DeviceMemory _depthImageMemory;
-        List<Framebuffer> _swapChainFramebuffers;
-        //VkBuffer _vertexBuffer;
+        
+        Semaphore _imageAvailableSemaphore;
+        Semaphore _renderFinishedSemaphore;
+
         Dictionary<int, VkBuffer> _vertexBuffers = new Dictionary<int, VkBuffer>();
-        //DeviceMemory _vertexBufferMemory;
         Dictionary<int, DeviceMemory> _vertexBufferMemories = new Dictionary<int, DeviceMemory>();
-        //VkBuffer _indexBuffer;
         Dictionary<int, VkBuffer> _indexBuffers = new Dictionary<int, VkBuffer>();
-        //DeviceMemory _indexBufferMemory;
         Dictionary<int, DeviceMemory> _indexBufferMemories = new Dictionary<int, DeviceMemory>();
         Dictionary<int, VkBuffer> _uniformBuffers = new Dictionary<int, VkBuffer>();
         Dictionary<int, DeviceMemory> _uniformBufferMemories = new Dictionary<int, DeviceMemory>();
-        DescriptorPool _descriptorPool;
         Dictionary<int, DescriptorSet> _descriptorSets = new Dictionary<int, DescriptorSet>();
-        CommandBuffer[] _drawCommandBuffers;
-        Semaphore _imageAvailableSemaphore;
-        Semaphore _renderFinishedSemaphore;
-        Image[] _swapChainImages;
 
         Window _window;
 
@@ -71,11 +75,10 @@ namespace BundtCake
 
         bool _isDisposed;
 
-        //GameObject _gameObject;
         Dictionary<int, GameObject> _gameObjects = new Dictionary<int, GameObject>();
         Camera _mainCamera;
 
-        public void Initialize(Window window, IEnumerable<GameObject> gameObjects, Camera mainCamera)
+        public Vulkan(Window window, IEnumerable<GameObject> gameObjects, Camera mainCamera)
         {
             _window = window;
             foreach (var gameObject in gameObjects)
@@ -83,7 +86,10 @@ namespace BundtCake
                 _gameObjects[gameObject.Id] = gameObject;
             }
             _mainCamera = mainCamera;
+        }
 
+        public void Initialize()
+        {
             _logger.LogInfo("Initializing Vulkan...");
 
             VulkanPrinter.PrintAvailableInstanceLayers();
@@ -96,13 +102,9 @@ namespace BundtCake
             _surface = CreateWin32Surface();
 
             var physicalDevices = GetPhysicalDevices();
-
             var requiredPhysicalDeviceFeatures = GetRequiredFeatures();
-
             var suitablePhysicalDevices = _instance.GetSuitablePhysicalDevices(_requiredPhysicalDeviceExtensions, requiredPhysicalDeviceFeatures, QueueFlags.Graphics, _surface);
-
             _physicalDevice = ChooseBestPhysicalDevice(physicalDevices);
-
             _physicalDevice.PrintQueueFamilies();
 
             _graphicsQueueFamilyIndex = _physicalDevice.GetIndexOfFirstAvailableGraphicsQueueFamily();
@@ -129,8 +131,6 @@ namespace BundtCake
             CreateTextureImage();
             CreateTextureImageView();
             CreateTextureSampler();
-
-            // // loadModel();
 
             CreateVertexBuffers();
             CreateIndexBuffers();

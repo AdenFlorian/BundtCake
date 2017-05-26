@@ -16,11 +16,10 @@ namespace BundtCake
         {
             _gameObjects = gameObjects;
             
-            _vulkan = new Vulkan();
-
             _window = new Window(windowTitle, windowPositionX, windowPositionY, windowWidth, windowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 
-            _vulkan.Initialize(_window, gameObjects, mainCamera);
+            _vulkan = new Vulkan(_window, gameObjects, mainCamera);
+            _vulkan.Initialize();
         }
 
         public void Start()
