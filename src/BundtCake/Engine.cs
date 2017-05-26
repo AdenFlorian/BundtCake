@@ -25,18 +25,14 @@ namespace BundtCake
         public void Start()
         {
             var startTime = DateTime.Now;
-
             var deltaTime = 0f;
             var lastFrameTime = startTime;
 
-            // If doing multiple windows in different threads
-            // should poll events from main thread and pass them out from there
             Input.Start();
 
             while (true)
             {
                 var sdlEvent = SdlWrapper.PollEvent();
-
                 var eventResult = HandleSdlEvent(sdlEvent);
 
                 if (eventResult == LoopDo.Continue) continue;
@@ -62,7 +58,6 @@ namespace BundtCake
             {
                 case SDL_EventType.SDL_QUIT: return LoopDo.Break;
                 case SDL_EventType.SDL_WINDOWEVENT: return HandleWindowEvent(sdlEvent.window);
-                case SDL_EventType.SDL_MOUSEMOTION: return HandleMouseMotionEvent(sdlEvent.motion);
                 case SDL_EventType.SDL_KEYDOWN:
                     Input.SetKeyDown(sdlEvent.key.keysym.sym);
                     return LoopDo.Continue;
@@ -88,13 +83,6 @@ namespace BundtCake
                     return LoopDo.Continue;
                 }
             }
-            return LoopDo.Nothing;
-        }
-
-        LoopDo HandleMouseMotionEvent(SDL_MouseMotionEvent mouseMotionEvent)
-        {
-            //MouseX = lastMouseX - mouseMotionEvent.x;
-            //lastMouseX = mouseMotionEvent.x;
             return LoopDo.Nothing;
         }
 
