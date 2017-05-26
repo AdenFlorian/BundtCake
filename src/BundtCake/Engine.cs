@@ -13,7 +13,7 @@ namespace BundtCake
 
         static MyLogger _logger = new MyLogger(nameof(Engine));
 
-        Vulkan _vulkan;
+        VulkanRenderer _vulkan;
         Window _window;
         List<GameObject> _gameObjects;
         
@@ -26,7 +26,7 @@ namespace BundtCake
             
             _window = new Window(windowTitle + " - Initializing...", windowPositionX, windowPositionY, windowWidth, windowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 
-            _vulkan = new Vulkan(_window, gameObjects, mainCamera);
+            _vulkan = new VulkanRenderer(_window, gameObjects, mainCamera);
 
             var tokenSrc = new CancellationTokenSource();
             var initTask = _vulkan.InitializeAsync(tokenSrc.Token);

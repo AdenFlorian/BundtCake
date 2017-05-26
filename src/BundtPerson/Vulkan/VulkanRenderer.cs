@@ -15,13 +15,13 @@ using VkSemaphore = Vulkan.Semaphore;
 
 namespace BundtCake
 {
-    class Vulkan
+    public class VulkanRenderer
     {
         const uint VK_SUBPASS_EXTERNAL = ~0U;
         const uint VK_QUEUE_FAMILY_IGNORED = ~0U;
         const string TEXTURE_PATH = "textures/a-button.png";
 
-        static readonly MyLogger _logger = new MyLogger(nameof(Vulkan));
+        static readonly MyLogger _logger = new MyLogger(nameof(VulkanRenderer));
         static readonly string[] _requiredInstanceExtensions = new string[] { "VK_EXT_debug_report", "VK_KHR_win32_surface", "VK_KHR_surface" };
         static readonly string[] _requiredPhysicalDeviceExtensions = new string[] { "VK_KHR_swapchain" };
 
@@ -80,7 +80,7 @@ namespace BundtCake
         Dictionary<int, GameObject> _gameObjects = new Dictionary<int, GameObject>();
         Camera _mainCamera;
 
-        public Vulkan(Window window, IEnumerable<GameObject> gameObjects, Camera mainCamera)
+        public VulkanRenderer(Window window, IEnumerable<GameObject> gameObjects, Camera mainCamera)
         {
             _window = window;
             foreach (var gameObject in gameObjects)
@@ -218,17 +218,22 @@ namespace BundtCake
         {
             if (flags.HasFlag(DebugReportFlagsExt.Error))
             {
-                _logger.LogError("Validation layer " + flags + ": " + Marshal.PtrToStringUTF8(message));
+                _logger.LogError("Validation layer " + flags + ": " + IntPtrToString(message));
             }
             else if (flags.HasFlag(DebugReportFlagsExt.PerformanceWarning))
             {
-                _logger.LogWarning("Validation layer " + flags + ": " + Marshal.PtrToStringUTF8(message));
+                _logger.LogWarning("Validation layer " + flags + ": " + IntPtrToString(message));
             }
             else
             {
-                _logger.LogInfo("Validation layer " + flags + ": " + Marshal.PtrToStringUTF8(message));
+                _logger.LogInfo("Validation layer " + flags + ": " + IntPtrToString(message));
             }
             return false;
+        }
+
+        string IntPtrToString(IntPtr messageIntPtr)
+        {
+            return Marshal.PtrToStringUni(messageIntPtr);
         }
 
         SurfaceKhr CreateWin32Surface()
@@ -674,8 +679,8 @@ namespace BundtCake
                 }
             };
 
-            var vertexBindingDescription = Vertex.GetBindingDescription();
-            var vertexAttributeDescriptions = Vertex.GetAttributeDescriptions();
+            var vertexBindingDescription = GetBindingDescription();
+            var vertexAttributeDescriptions = GetAttributeDescriptions();
 
             var pipelineVertexInputStateCreateInfo = new PipelineVertexInputStateCreateInfo
             {
@@ -1045,7 +1050,8 @@ namespace BundtCake
 
             var pixelsBytes = new List<byte>();
 
-            foreach (var pixel in imagedata.Pixels)
+            // TODO Try imagedata.Pixels.AsBytes().ToArray()
+            foreach (var pixel in imagedata.Pixels.ToArray())
             {
                 pixelsBytes.Add(pixel.R);
                 pixelsBytes.Add(pixel.G);
@@ -1572,7 +1578,7 @@ namespace BundtCake
             }
         }
 
-        ~Vulkan()
+        ~VulkanRenderer()
         {
             Dispose();
         }
@@ -1644,6 +1650,47 @@ namespace BundtCake
             _swapChainImageViews?.ForEach(x => _device.DestroyImageView(x));
 
             _device.DestroySwapchainKHR(_swapChain);
+        }
+
+        /// <summary>
+        /// Need to update if Vertex changes
+        /// </summary>
+        static VertexInputBindingDescription GetBindingDescription()
+        {
+            var bindingDescription = new VertexInputBindingDescription
+            {
+                Binding = 0,
+                // Vector3 + Vector3 + Vector2 = 8
+                Stride = 8 * sizeof(float),
+                InputRate = VertexInputRate.Vertex
+            };
+
+            return bindingDescription;
+        }
+
+        /// <summary>
+        /// Need to update if Vertex changes
+        /// </summary>
+        static VertexInputAttributeDescription[] GetAttributeDescriptions()
+        {
+            var attributeDescriptions = new VertexInputAttributeDescription[3];
+
+            attributeDescriptions[0].Binding = 0;
+            attributeDescriptions[0].Location = 0;
+            attributeDescriptions[0].Format = Format.R32G32B32Sfloat;
+            attributeDescriptions[0].Offset = 0;
+
+            attributeDescriptions[1].Binding = 0;
+            attributeDescriptions[1].Location = 1;
+            attributeDescriptions[1].Format = Format.R32G32B32Sfloat;
+            attributeDescriptions[1].Offset = 3 * sizeof(float);
+
+            attributeDescriptions[2].Binding = 0;
+            attributeDescriptions[2].Location = 2;
+            attributeDescriptions[2].Format = Format.R32G32Sfloat;
+            attributeDescriptions[2].Offset = 6 * sizeof(float);
+
+            return attributeDescriptions;
         }
     }
 }

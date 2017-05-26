@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BundtCake
 {
-    class GameObject
+    public class GameObject
     {
         static int nextId;
 

@@ -61,7 +61,7 @@ namespace BundtCake
             }
         }
 
-        internal static int GetSizeInBytes()
+        public static int GetSizeInBytes()
         {
             var floatsInMat4 = 16;
             var numOfMat4s = 3;

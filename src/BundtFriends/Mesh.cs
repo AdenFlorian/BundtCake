@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace BundtCake
 {
-    class Mesh
+    public class Mesh
     {
         public Vector3[] VertexPositions;
         public Vector3[] Colors;
