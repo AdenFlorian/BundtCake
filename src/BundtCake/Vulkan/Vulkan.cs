@@ -1245,7 +1245,7 @@ namespace BundtCake
             {
                 VkBuffer uniformBuffer;
                 DeviceMemory uniformBufferMemory;
-                
+
                 CreateBuffer(bufferSize, BufferUsageFlags.UniformBuffer, MemoryPropertyFlags.HostVisible | MemoryPropertyFlags.HostCoherent, out uniformBuffer, out uniformBufferMemory);
 
                 _uniformBuffers[index] = uniformBuffer;
@@ -1376,7 +1376,7 @@ namespace BundtCake
 
                 _drawCommandBuffers[i].Begin(beginInfo);
 
-                var clearValues = new ClearValue[] {new ClearValue(), new ClearValue()};
+                var clearValues = new ClearValue[] { new ClearValue(), new ClearValue() };
                 clearValues[0].Color = new ClearColorValue(new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
                 clearValues[1].DepthStencil = new ClearDepthStencilValue { Depth = 1.0f, Stencil = 0 };
 
@@ -1406,7 +1406,7 @@ namespace BundtCake
                 }
 
                 _drawCommandBuffers[i].CmdEndRenderPass();
-        
+
                 _drawCommandBuffers[i].End();
             }
         }
@@ -1501,9 +1501,9 @@ namespace BundtCake
         {
             return new PresentInfoKhr
             {
-                WaitSemaphores = new Semaphore[] {waitSemaphore},
-                Swapchains = new SwapchainKhr[] {_swapChain},
-                ImageIndices = new uint[] {imageIndex}
+                WaitSemaphores = new Semaphore[] { waitSemaphore },
+                Swapchains = new SwapchainKhr[] { _swapChain },
+                ImageIndices = new uint[] { imageIndex }
             };
         }
 
