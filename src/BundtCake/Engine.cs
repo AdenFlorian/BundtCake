@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using BundtCommon;
 using static SDL2.SDL;
 
 namespace BundtCake
@@ -8,18 +11,42 @@ namespace BundtCake
     {
         public Action<float> JustBeforeDraw;
 
+        static MyLogger _logger = new MyLogger(nameof(Engine));
+
         Vulkan _vulkan;
         Window _window;
         List<GameObject> _gameObjects;
         
-        public void Initialize(List<GameObject> gameObjects, Camera mainCamera, string windowTitle, int windowPositionX, int windowPositionY, int windowWidth, int windowHeight)
+        /// <summary>
+        /// Returns false if user quit the application during initializtion
+        /// </summary>
+        public bool Initialize(List<GameObject> gameObjects, Camera mainCamera, string windowTitle, int windowPositionX, int windowPositionY, int windowWidth, int windowHeight)
         {
             _gameObjects = gameObjects;
             
-            _window = new Window(windowTitle, windowPositionX, windowPositionY, windowWidth, windowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+            _window = new Window(windowTitle + " - Initializing...", windowPositionX, windowPositionY, windowWidth, windowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 
             _vulkan = new Vulkan(_window, gameObjects, mainCamera);
-            _vulkan.Initialize();
+
+            var tokenSrc = new CancellationTokenSource();
+            var initTask = _vulkan.InitializeAsync(tokenSrc.Token);
+
+            while (initTask.IsCompleted == false)
+            {
+                var sdlEvent = SdlWrapper.PollEvent();
+                if (sdlEvent.type == SDL_EventType.SDL_QUIT)
+                {
+                    _logger.LogInfo("Cancelling initialization...");
+                    tokenSrc.Cancel();
+                    initTask.Wait();
+                    _logger.LogInfo("Initialization cancelled");
+                    return false;
+                }
+            }
+
+            _window.Title = windowTitle;
+
+            return true;
         }
 
         public void Start()
@@ -48,8 +75,7 @@ namespace BundtCake
                 _vulkan.DrawFrame();
             }
 
-            _vulkan.Dispose();
-            _window.Dispose();
+            Dispose();
         }
 
         LoopDo HandleSdlEvent(SDL_Event sdlEvent)
@@ -91,6 +117,12 @@ namespace BundtCake
             Nothing,
             Continue,
             Break
+        }
+
+        public void Dispose()
+        {
+            _vulkan.Dispose();
+            _window.Dispose();
         }
     }
 }

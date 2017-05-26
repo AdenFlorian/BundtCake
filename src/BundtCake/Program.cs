@@ -16,7 +16,7 @@ namespace BundtCake
 
         static int Main(string[] args)
         {
-            MyLogger.SetLogLevelOverride(LogLevel.Debug);
+            MyLogger.SetLogLevelOverride(LogLevel.Information);
 
             var engine = new Engine();
 
@@ -36,14 +36,16 @@ namespace BundtCake
                 myGameObject.Transform.Position.Z -= 3;
                 //myGameObject.Transform.Scale *= 3;
                 gameObjects.Add(myGameObject);
-                
             }
 
             var mainCamera = new Camera();
             mainCamera.Transform.Position = new Vector3(0, 0, -200);
 
-            engine.Initialize(gameObjects, mainCamera, "i am bundt", 100, 100, 1920, 1080);
-
+            if (engine.Initialize(gameObjects, mainCamera, "i am bundt", 100, 100, 1920, 1080) == false)
+            {
+                engine.Dispose();
+                return 0;
+            }
 
             engine.JustBeforeDraw += (deltaTime) => {
                 var moveSpeed = 5f;

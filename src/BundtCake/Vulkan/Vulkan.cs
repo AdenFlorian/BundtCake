@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using BundtCommon;
 using Newtonsoft.Json;
 using Vulkan;
 using Vulkan.Windows;
 using VkBuffer = Vulkan.Buffer;
+using VkSemaphore = Vulkan.Semaphore;
 
 namespace BundtCake
 {
@@ -57,8 +59,8 @@ namespace BundtCake
         Image _depthImage;
         DeviceMemory _depthImageMemory;
         
-        Semaphore _imageAvailableSemaphore;
-        Semaphore _renderFinishedSemaphore;
+        VkSemaphore _imageAvailableSemaphore;
+        VkSemaphore _renderFinishedSemaphore;
 
         Dictionary<int, VkBuffer> _vertexBuffers = new Dictionary<int, VkBuffer>();
         Dictionary<int, DeviceMemory> _vertexBufferMemories = new Dictionary<int, DeviceMemory>();
@@ -88,17 +90,29 @@ namespace BundtCake
             _mainCamera = mainCamera;
         }
 
-        public void Initialize()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             _logger.LogInfo("Initializing Vulkan...");
 
             VulkanPrinter.PrintAvailableInstanceLayers();
             VulkanPrinter.PrintAvailableInstanceExtensions();
 
-            _instance = CreateInstance();
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating Vulkan instance...";
+            var instanceCreateTask = CreateInstanceAsync();
+            while (instanceCreateTask.IsCompleted == false)
+            {
+                await Task.Delay(10);
+                if (cancellationToken.IsCancellationRequested) return;
+            }
+            _instance = instanceCreateTask.Result;
 
             SetupDebugCallback();
 
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating surface...";
             _surface = CreateWin32Surface();
 
             var physicalDevices = GetPhysicalDevices();
@@ -110,8 +124,14 @@ namespace BundtCake
             _graphicsQueueFamilyIndex = _physicalDevice.GetIndexOfFirstAvailableGraphicsQueueFamily();
             _presentQueueFamilyIndex = _physicalDevice.GetIndexOfFirstAvailablePresentQueueFamily(_surface);
 
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating logical device...";
             _device = CreateLogicalDevice(requiredPhysicalDeviceFeatures);
 
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating swapchain...";
             CreateSwapchain();
             CreateSwapChainImageViews();
 
@@ -126,11 +146,23 @@ namespace BundtCake
 
             CreateDepthResources();
 
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating frame buffers...";
+
             CreateFramebuffers();
+
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating texture resources...";
 
             CreateTextureImage();
             CreateTextureImageView();
             CreateTextureSampler();
+
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating vertex/index/uniform buffers...";
 
             CreateVertexBuffers();
             CreateIndexBuffers();
@@ -139,14 +171,20 @@ namespace BundtCake
             CreateDescriptorPool();
             CreateDescriptorSets();
 
+            if (cancellationToken.IsCancellationRequested) return;
+
+            _window.Title = "Creating command buffers...";
             CreateCommandBuffers();
 
             CreateSemaphores();
 
+            if (cancellationToken.IsCancellationRequested) return;
+
             _logger.LogInfo("Vulkan initialized");
+            _window.Title = "Vulkan initialized";
         }
 
-        static Instance CreateInstance()
+        static async Task<Instance> CreateInstanceAsync()
         {
             _logger.LogDebug("Creating Vulkan instance...");
 
@@ -158,7 +196,15 @@ namespace BundtCake
 
             _logger.LogDebug("Creating Vulkan instance with info: \n" + JsonConvert.SerializeObject(instanceCreateInfo).Prettify());
 
-            return new Instance(instanceCreateInfo);
+            Instance instance = null;
+
+            await Task.Run(() => {
+                instance = new Instance(instanceCreateInfo);
+            });
+
+            if (instance == null) throw new VulkanException("Failed to create Vulkan instance");
+
+            return instance;
         }
 
         void SetupDebugCallback()
@@ -1486,22 +1532,22 @@ namespace BundtCake
             }
         }
 
-        SubmitInfo CreateSubmitInfo(Semaphore waitSemaphore, PipelineStageFlags waitDstStageMask, CommandBuffer commandbuffer, Semaphore signalSemaphore)
+        SubmitInfo CreateSubmitInfo(VkSemaphore waitSemaphore, PipelineStageFlags waitDstStageMask, CommandBuffer commandbuffer, VkSemaphore signalSemaphore)
         {
             return new SubmitInfo
             {
-                WaitSemaphores = new Semaphore[] { waitSemaphore },
+                WaitSemaphores = new VkSemaphore[] { waitSemaphore },
                 WaitDstStageMask = new PipelineStageFlags[] { waitDstStageMask },
                 CommandBuffers = new CommandBuffer[] { commandbuffer },
-                SignalSemaphores = new Semaphore[] { signalSemaphore }
+                SignalSemaphores = new VkSemaphore[] { signalSemaphore }
             };
         }
 
-        PresentInfoKhr CreatePresentInfo(Semaphore waitSemaphore, SwapchainKhr swapchain, uint imageIndex)
+        PresentInfoKhr CreatePresentInfo(VkSemaphore waitSemaphore, SwapchainKhr swapchain, uint imageIndex)
         {
             return new PresentInfoKhr
             {
-                WaitSemaphores = new Semaphore[] { waitSemaphore },
+                WaitSemaphores = new VkSemaphore[] { waitSemaphore },
                 Swapchains = new SwapchainKhr[] { _swapChain },
                 ImageIndices = new uint[] { imageIndex }
             };
@@ -1536,54 +1582,57 @@ namespace BundtCake
             if (_isDisposed) return;
             _isDisposed = true;
 
-            _device.WaitIdle();
-
-            CleanupSwapchain();
-
-            _device.DestroySampler(_textureSampler);
-            _device.DestroyImageView(_textureImageView);
-
-            _device.DestroyImage(_textureImage);
-            _device.FreeMemory(_textureImageMemory);
-
-            _device.DestroyDescriptorPool(_descriptorPool);
-
-            _device.DestroyDescriptorSetLayout(_descriptorSetLayout);
-
-            foreach (var index in _gameObjects.Keys)
+            if (_device != null)
             {
-                _device.DestroyBuffer(_uniformBuffers[index]);
-                _device.FreeMemory(_uniformBufferMemories[index]);
+                _device.WaitIdle();
+
+                CleanupSwapchain();
+
+                _device.DestroySampler(_textureSampler);
+                _device.DestroyImageView(_textureImageView);
+
+                _device.DestroyImage(_textureImage);
+                _device.FreeMemory(_textureImageMemory);
+
+                _device.DestroyDescriptorPool(_descriptorPool);
+
+                _device.DestroyDescriptorSetLayout(_descriptorSetLayout);
+
+                _uniformBuffers?.Keys.ToList().ForEach(x => _device.DestroyBuffer(_uniformBuffers[x]));
+                _uniformBufferMemories?.Keys.ToList().ForEach(x => _device.FreeMemory(_uniformBufferMemories[x]));
+
+                _indexBuffers?.Keys.ToList().ForEach(x => _device.DestroyBuffer(_indexBuffers[x]));
+                _indexBufferMemories?.Keys.ToList().ForEach(x => _device.FreeMemory(_indexBufferMemories[x]));
+
+                _vertexBuffers?.Keys.ToList().ForEach(x => _device.DestroyBuffer(_vertexBuffers[x]));
+                _vertexBufferMemories?.Keys.ToList().ForEach(x => _device.FreeMemory(_vertexBufferMemories[x]));
+
+                _device.DestroySemaphore(_renderFinishedSemaphore);
+                _device.DestroySemaphore(_imageAvailableSemaphore);
+
+                _device.DestroyCommandPool(_commandPool);
+                _device.DestroyCommandPool(_tempCommandPool);
+
+                _device.Destroy();
             }
 
-            foreach (var gameObject in _gameObjects.Values)
+            if (_instance != null)
             {
-                _device.DestroyBuffer(_indexBuffers[gameObject.Id]);
-                _device.FreeMemory(_indexBufferMemories[gameObject.Id]);
-
-                _device.DestroyBuffer(_vertexBuffers[gameObject.Id]);
-                _device.FreeMemory(_vertexBufferMemories[gameObject.Id]);
+                //_instance.DestroyDebugReportCallbackEXT();
+                _instance.DestroySurfaceKHR(_surface);
+                _instance.Dispose();
             }
-
-            _device.DestroySemaphore(_renderFinishedSemaphore);
-            _device.DestroySemaphore(_imageAvailableSemaphore);
-
-            _device.DestroyCommandPool(_commandPool);
-            _device.DestroyCommandPool(_tempCommandPool);
-
-            _device.Destroy();
-            //_instance.DestroyDebugReportCallbackEXT();
-            _instance.DestroySurfaceKHR(_surface);
-            _instance.Dispose();
         }
 
         void CleanupSwapchain()
         {
+            if (_device == null) return;
+
             _device.DestroyImageView(_depthImageView);
             _device.DestroyImage(_depthImage);
             _device.FreeMemory(_depthImageMemory);
 
-            _swapChainFramebuffers.ForEach(x => _device.DestroyFramebuffer(x));
+            _swapChainFramebuffers?.ForEach(x => _device.DestroyFramebuffer(x));
 
             _device.FreeCommandBuffers(_commandPool, _drawCommandBuffers);
 
@@ -1592,7 +1641,7 @@ namespace BundtCake
 
             _device.DestroyRenderPass(_renderPass);
 
-            _swapChainImageViews.ForEach(x => _device.DestroyImageView(x));
+            _swapChainImageViews?.ForEach(x => _device.DestroyImageView(x));
 
             _device.DestroySwapchainKHR(_swapChain);
         }
