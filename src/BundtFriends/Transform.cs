@@ -8,6 +8,30 @@ namespace BundtCake
         public Vector3 Rotation = new Vector3();
         public Vector3 Scale = new Vector3(1f, 1f, 1f);
 
+        public Vector3 Forward
+        {
+            get
+            {
+                return Vector3.Transform(Vector3.UnitZ, CreateRotationMatrix());
+            }
+        }
+
+        public Vector3 Right
+        {
+            get
+            {
+                return Vector3.Transform(Vector3.UnitX, CreateRotationMatrix());
+            }
+        }
+
+        public Vector3 Up
+        {
+            get
+            {
+                return Vector3.Transform(Vector3.UnitY, CreateRotationMatrix());
+            }
+        }
+
         public Matrix4x4 CreateModelMatrix()
         {
             var translation = CreateTranslationMatrix();
