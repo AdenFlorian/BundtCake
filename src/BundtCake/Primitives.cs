@@ -4,6 +4,39 @@ namespace BundtCake
 {
     public static class Primitives
     {
+        public static Mesh CreatePlane()
+        {
+            return new Mesh
+            {
+                VertexPositions = new Vector3[]
+                {
+                    new Vector3(-1.0f, 1.0f, -1.0f),
+                    new Vector3( 1.0f, 1.0f, -1.0f),
+                    new Vector3( 1.0f, 1.0f, 1.0f),
+                    new Vector3(-1.0f, 1.0f, 1.0f),
+                },
+                Indices = new uint[]
+                {
+                    0, 1, 2,
+                    2, 3, 0,
+                },
+                Colors = new Vector3[]
+                {
+                    new Vector3(1.0f, 0.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, 0.0f, 1.0f),
+                    new Vector3(1.0f, 1.0f, 1.0f)
+                },
+                TexCoords = new Vector2[]
+                {
+                    new Vector2(0.0f, 0.0f),
+                    new Vector2(1.0f, 0.0f),
+                    new Vector2(1.0f, 1.0f),
+                    new Vector2(0.0f, 1.0f)
+                }
+            };
+        }
+
         public static Mesh CreateCube8()
         {
             var cubeMesh = new Mesh();
