@@ -7,7 +7,7 @@ using static SDL2.SDL;
 
 namespace BundtCake
 {
-    class Engine
+    public class Engine
     {
         public Action<float> JustBeforeDraw;
 

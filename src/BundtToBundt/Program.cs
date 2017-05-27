@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 using BundtCommon;
 using Microsoft.Extensions.Logging;
-using SDL2;
 
 namespace BundtCake
 {
@@ -26,7 +21,7 @@ namespace BundtCake
             floor.Mesh = Primitives.CreateCube8();
             floor.Transform.Position.Y = -20;
             floor.Transform.Scale *= 15;
-            //gameObjects.Add(floor);
+            gameObjects.Add(floor);
 
             for (int i = 0; i < 100; i++)
             {

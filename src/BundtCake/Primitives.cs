@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace BundtCake
 {
-    static class Primitives
+    public static class Primitives
     {
         public static Mesh CreateCube8()
         {

@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceRoot}/src/BundtCake/bin/Debug/netcoreapp2.0/BundtCake.dll",
+            "program": "${workspaceRoot}/src/BundtToBundt/bin/Debug/netcoreapp2.0/BundtToBundt.dll",
             "args": [],
             "cwd": "${workspaceRoot}",
             "stopAtEntry": false,
