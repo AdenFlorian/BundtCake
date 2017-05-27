@@ -13,8 +13,8 @@ namespace BundtCake
         {
             var forwardVector = new Vector3(0, 0, 1);
 
-            var forwardMat = Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(Transform.Rotation.Y));
-            forwardMat *= Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(Transform.Rotation.X));
+            var forwardMat = Matrix4x4.CreateRotationX(BundtMaths.DegressToRadians(Transform.Rotation.X));
+            forwardMat *= Matrix4x4.CreateRotationY(BundtMaths.DegressToRadians(Transform.Rotation.Y));
             forwardMat *= Matrix4x4.CreateRotationZ(BundtMaths.DegressToRadians(Transform.Rotation.Z));
 
             forwardVector = Vector3.Transform(forwardVector, forwardMat);
