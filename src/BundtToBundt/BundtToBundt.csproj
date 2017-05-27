@@ -1,22 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <PackageTargetFallback>win8;portable-net45+win8</PackageTargetFallback>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64</RuntimeIdentifiers>
   </PropertyGroup>
-
   <ItemGroup>
     <None Include="SDL2.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
   </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="BundtCommon" Version="1.0.4"/>
+    <PackageReference Include="Troschuetz.Random" Version="4.1.3"/>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\BundtCake\BundtCake.csproj"/>
   </ItemGroup>
-
 </Project>
