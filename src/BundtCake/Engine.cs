@@ -90,6 +90,9 @@ namespace BundtCake
                 case SDL_EventType.SDL_KEYUP:
                     Input.SetKeyUp(sdlEvent.key.keysym.sym);
                     return LoopDo.Continue;
+                case SDL_EventType.SDL_MOUSEMOTION:
+                    Input.OnMouseMotion(sdlEvent.motion);
+                    return LoopDo.Continue;
                 default: break;
             }
             return LoopDo.Nothing;

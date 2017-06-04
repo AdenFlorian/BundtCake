@@ -1,4 +1,6 @@
+using System;
 using BundtCommon;
+using SDL2;
 using static SDL2.SDL;
 
 namespace BundtCake
@@ -16,33 +18,23 @@ namespace BundtCake
 
         public static int MouseX;
         public static int MouseY;
-        static int _lastMouseX;
-        static int _lastMouseY;
 
         static MyLogger _logger = new MyLogger(nameof(Input));
 
         internal static void Start()
         {
-            int mouseX, mouseY;
-            SDL_GetGlobalMouseState(out mouseX, out mouseY);
-            _lastMouseX = mouseX;
-            _lastMouseY = mouseY;
         }
 
         internal static void Update()
         {
-            int mouseX, mouseY;
-            SDL_GetGlobalMouseState(out mouseX, out mouseY);
-            MouseX = _lastMouseX - mouseX;
-            _lastMouseX = mouseX;
-            MouseY = _lastMouseY - mouseY;
-            _lastMouseY = mouseY;
         }
 
         internal static void Clear()
         {
             ADown = false;
             AUp = false;
+            MouseX = 0;
+            MouseY = 0;
         }
 
         public static void SetKeyDown(SDL_Keycode keycode)
@@ -83,6 +75,12 @@ namespace BundtCake
                 case SDL_Keycode.SDLK_LSHIFT: LeftShift = false; break;
                 default: break;
             }
+        }
+
+        internal static void OnMouseMotion(SDL_MouseMotionEvent motion)
+        {
+            MouseX += motion.xrel;
+            MouseY += motion.yrel;
         }
     }
 }

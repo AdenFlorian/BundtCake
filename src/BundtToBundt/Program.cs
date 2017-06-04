@@ -31,6 +31,8 @@ namespace BundtCake
                 return 0;
             }
 
+            SDL2.SDL.SDL_SetRelativeMouseMode(SDL2.SDL.SDL_bool.SDL_TRUE);
+
             engine.JustBeforeDraw += (deltaTime) => {
                 var forward = 0f;
                 var strafe = 0f;
@@ -59,12 +61,11 @@ namespace BundtCake
                 _playerGO.Transform.Position += _playerGO.Transform.Forward * forward;
                 _playerGO.Transform.Position += _playerGO.Transform.Right * strafe;
 
-                _playerGO.Transform.Rotation.Y += Input.MouseX * 0.1f;
+                _playerGO.Transform.Rotation.Y -= Input.MouseX * 0.1f;
 
                 mainCamera.Transform.Position = _playerGO.Transform.Position;
                 mainCamera.Transform.Rotation.Y = _playerGO.Transform.Rotation.Y;
-
-                RotateCameraWithMouse(mainCamera);
+                mainCamera.Transform.Rotation.X += Input.MouseY * 0.1f;
 
                 _moveSpeed = 10f;
             };
@@ -107,11 +108,6 @@ namespace BundtCake
             
 
             return gameObjects;
-        }
-
-        static void RotateCameraWithMouse(Camera mainCamera)
-        {
-            mainCamera.Transform.Rotation.X -= Input.MouseY * 0.1f;
         }
     }
 }
